@@ -70,7 +70,8 @@
     },
     button(p) {
       const a = pos(p.legs.a), b = pos(p.legs.b), c = mid(a, b);
-      return line(a, b, SILVER) + `<rect x="${c.x - 15}" y="${c.y - 15}" width="30" height="30" rx="3" fill="var(--black)" stroke="var(--black-l)"/><circle data-cap cx="${c.x}" cy="${c.y}" r="9" fill="var(--silver-d)" stroke="var(--silver)"/>`;
+      const other = a.x !== b.x && a.y !== b.y ? line({ x: b.x, y: a.y }, c, 'var(--silver-d)', 2) + line({ x: a.x, y: b.y }, c, 'var(--silver-d)', 2) : '';
+      return other + line(a, b, SILVER) + `<rect x="${c.x - 15}" y="${c.y - 15}" width="30" height="30" rx="3" fill="var(--black)" stroke="var(--black-l)"/><circle data-cap cx="${c.x}" cy="${c.y}" r="9" fill="var(--silver-d)" stroke="var(--silver)"/>`;
     },
     pot(p) {
       const a = pos(p.legs.a), w = pos(p.legs.w), b = pos(p.legs.b), c = { x: w.x, y: w.y + 26 };
@@ -274,7 +275,7 @@
       const steps = [];
       ex.c.parts.forEach(p => {
         const t = PART_TYPES[p.type];
-        steps.push(`<strong>${p.id}</strong> (${t.label}): ` + t.legs.map((l, i) => `${t.names[i]} to ${pretty(p.legs[l])}`).join(', ') + '.');
+        steps.push(`<strong>${p.id}</strong> (${t.label}): ` + t.legs.map((l, i) => `${t.names[i]} to ${pretty(p.legs[l])}`).join(', ') + '.' + (p.type === 'button' ? ' Place the button across the centre gap. Its other two legs simply sit in the holes beside these.' : ''));
       });
       ex.c.wires.forEach(w => steps.push(`Wire: ${pretty(w[0])} to ${pretty(w[1])}.`));
       const prev = ex.n > 1 ? `<a href="#ex-${ex.n - 1}">&larr; Example ${ex.n - 1}</a>` : '<a href="#lab">&larr; All examples</a>';

@@ -43,7 +43,7 @@ def fig_loop():
 
 def fig_path():
     o = t(24, 30, "Your path through this notebook", 15, 700)
-    stages = [("1", "Introduction", ["The big", "ideas"]), ("2", "9 Topics", ["Learn each", "core part"]), ("3", "Practical Lab", ["25 examples", "in a simulator"]), ("4", "22 Sensors", ["How robots", "feel the world"]), ("5", "Robot", ["25 exercises", "on a real build"])]
+    stages = [("1", "Introduction", ["The big", "ideas"]), ("2", "17 Topics", ["Learn each part,", "and how to code"]), ("3", "Practical Lab", ["25 examples", "in a simulator"]), ("4", "22 Sensors", ["How robots", "feel the world"]), ("5", "Robot", ["25 exercises", "on a real build"])]
     for i, (n, name, lines) in enumerate(stages):
         x = 18 + i * 138
         o += rect(x, 56, 126, 124, "--card", 8)
@@ -75,13 +75,15 @@ void loop() {            // runs over and over, forever
 def intro_page(ul, sensor_count, robot_count, example_count):
     stat = lambda n, s: f'<div><b>{n}</b><span>{s}</span></div>'
     rows = [
-        ("9 Topics", "#breadboard", "One core part per page, with an image, key terms, practice questions and Bloom's levels.", "Learning what each part does"),
+        ("17 Topics in 2 units", "#breadboard", "One core part per page, with an image, key terms, practice questions and Bloom's levels.", "Learning what each part does"),
+        ("Coding Course", "#coding", "12 short lessons, with code to run and tasks that check themselves.", "Learning to write code"),
         ("Practical Lab", "#lab", f"{example_count} examples on a virtual bench. You can rewire them, edit the code and run a check.", "Trying ideas safely, with no parts"),
         ("Sensors", "#sensors", f"{sensor_count} sensors, each with properties, inputs and outputs, a circuit and real-life uses.", "Choosing the right sensor"),
         ("Robot Simulator", "#rsim-6", "Run the robot exercises' code on a virtual robot before you build it.", "Testing robot code safely"),
         ("Robot Exercises", "#robots", f"{robot_count} builds with numbered steps and images, from an empty chassis to a final mission.", "Building a real robot"),
         ("Flashcards, Quizzes and Notes", "#flashcards", "Quick revision of topics, sensors and robot terms, with three quizzes.", "Checking what you remember"),
         ("Fix It Guide", "#faults", "A method for finding faults, plus common problems and their causes.", "Getting unstuck"),
+        ("Guide's Handbook", "#guide", "Suggested sessions, questions to ask, answer keys and a Shopping List.", "The adult helping out"),
         ("Assignments and Case Study", "#assignments", "Longer tasks, and a robot with four faults to solve.", "Applying what you know"),
     ]
     table = "".join(f'<tr><td><a href="{h}"><strong>{a}</strong></a></td><td>{b}</td><td>{c}</td></tr>' for a, h, b, c in rows)
@@ -121,7 +123,7 @@ def intro_page(ul, sensor_count, robot_count, example_count):
 <p>The Arduino runs a short program called a sketch. Every sketch has two main parts: <strong>setup()</strong> runs once at the start, and <strong>loop()</strong> runs over and over. This one blinks an LED, and you can <a href="#ex-2">run it in the Practical Lab</a>.</p>
 <pre class="code" tabindex="0">{BLINK}</pre>
 <p style="margin-top:12px">The ideas are the same in every language, so nothing you learn early gets wasted. A good path is:</p>
-<div class="tw"><table><tr><th>Stage</th><th>Language</th><th>Why it helps</th></tr><tr><td><strong>First</strong></td><td>Blocks: the <strong>Blocks</strong> tab in this notebook's simulators, then mBlock or Microsoft MakeCode</td><td>You drag and snap instructions, so you can focus on the logic with no spelling mistakes. The notebook also shows the real code your blocks write.</td></tr><tr><td><strong>Next</strong></td><td>C++, the Arduino language</td><td>It's what this notebook uses. It runs fast and talks directly to the hardware.</td></tr><tr><td><strong>Later</strong></td><td>Python and MicroPython</td><td>It's easy to read, and popular for cameras and AI. A classic Uno can't run it, so you'd need a board such as a Raspberry Pi Pico.</td></tr></table></div>
+<div class="tw"><table><tr><th>Stage</th><th>Language</th><th>Why it helps</th></tr><tr><td><strong>First</strong></td><td>Blocks: the <strong>Blocks</strong> tab in this notebook's simulators, then mBlock or Microsoft MakeCode</td><td>You drag and snap instructions, so you can focus on the logic with no spelling mistakes. The notebook also shows the real code your blocks write.</td></tr><tr><td><strong>Next</strong></td><td>C++, the Arduino language</td><td>It's what this notebook uses, and the <a href="#coding">Coding Course</a> teaches it. It runs fast and talks directly to the hardware.</td></tr><tr><td><strong>Later</strong></td><td>Python and MicroPython</td><td>It's easy to read, and popular for cameras and AI. A classic Uno can't run it, so you'd need a board such as a Raspberry Pi Pico.</td></tr></table></div>
 
 <h3>What's in this notebook</h3>
 <div class="tw"><table><tr><th>Section</th><th>What you get</th><th>Best for</th></tr>{table}</table></div>
@@ -136,6 +138,7 @@ def intro_page(ul, sensor_count, robot_count, example_count):
 <ul class="tight"><li><strong>To begin:</strong> a web browser. Topics and the simulator need nothing else, and a laptop or tablet makes wiring easier than a phone.</li>
 <li><strong>For real circuits:</strong> an Arduino Uno and USB cable, a breadboard, jumper wires, LEDs, 220 &#937;, 1 k&#937; and 10 k&#937; resistors, a push button, a 10 k&#937; dial (potentiometer), a light sensor (LDR), a piezo buzzer, a 470 &#181;F capacitor, a 1N4001 diode, 2N2222 and TIP120 transistors, a small DC motor, an SG90 servo, an HC-SR04 sensor and a 4 &#215; AA battery holder.</li>
 <li><strong>For the robot:</strong> the extra parts are listed in <a href="#robot-1">Robot Exercise 1</a>.</li></ul>
+<p>The <a href="#parts">Shopping List</a> groups everything by stage, so you can buy a little at a time.</p>
 <p><strong>Which Arduino do you have?</strong> This notebook assumes the classic <strong>Uno R3</strong>. The newer <strong>Uno R4</strong> allows only 8 mA per pin, so it needs bigger LED resistors. Each topic flags this where it matters, and the simulator can switch between the two.</p>
 
 <h3>Important notes</h3>

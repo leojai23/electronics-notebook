@@ -11,7 +11,7 @@
   const rails = { wires: [['GND', 'TN1']] };
   const rails5 = { wires: [['5V', 'TP1'], ['GND', 'TN1']] };
   const link = { wires: [['TN30', 'BN30']] }; // joins the top and bottom ground rails
-  const btn = (col, pin, id) => ({ parts: [{ id, type: 'button', legs: { a: `e${col}`, b: `f${col}` } }], wires: [[pin, `a${col}`], [`j${col}`, `BN${col}`]] });
+  const btn = (col, pin, id) => ({ parts: [{ id, type: 'button', legs: { a: `e${col}`, b: `f${col + 2}` } }], wires: [[pin, `a${col}`], [`j${col + 2}`, `BN${col + 2}`]] });
   const pot = (col, pin, id) => ({ parts: [{ id, type: 'pot', ohm: 10000, x: 0.5, legs: { a: `c${col}`, w: `c${col + 1}`, b: `c${col + 2}` } }], wires: [[`a${col}`, `TN${col}`], [`a${col + 2}`, `TP${col + 2}`], [`b${col + 1}`, pin]] });
   const sonar = (col, x) => ({ parts: [{ id: 'S1', type: 'sonar', cm: 100, x: x || 480, legs: { vcc: `a${col}`, trig: `a${col + 1}`, echo: `a${col + 2}`, gnd: `a${col + 3}` } }], wires: [[`b${col}`, `TP${col}`], [`b${col + 1}`, 'D7'], [`b${col + 2}`, 'D6'], [`b${col + 3}`, `TN${col + 3}`]] });
   const bat = { parts: [{ id: 'B1', type: 'battery', volts: 6, x: 70, legs: { p: 'BP2', n: 'BN2' } }], wires: [['GND', 'BN1']] };
@@ -296,7 +296,7 @@ void loop() {
 }
 `, test: [{ say: 'The buzzer sounds and pauses.', run: 2000, see: [{ p: 'BZ1', is: 'blink' }] }] },
 
-    { title: 'Capacitor keeps an LED lit', topics: ['capacitor', 'resistor'], c: merge(rails5, link, { parts: [{ id: 'BTN1', type: 'button', legs: { a: 'e8', b: 'f8' } }, { id: 'C1', type: 'cap', uf: 470, rating: 16, legs: { p: 'h8', n: 'h11' } }, { id: 'R1', type: 'resistor', ohm: 1000, legs: { a: 'i8', b: 'i15' } }, { id: 'LED1', type: 'led', color: 'red', legs: { a: 'h15', k: 'h16' } }], wires: [['a8', 'TP8'], ['j11', 'BN11'], ['j16', 'BN16']] }),
+    { title: 'Capacitor keeps an LED lit', topics: ['capacitor', 'resistor'], c: merge(rails5, link, { parts: [{ id: 'BTN1', type: 'button', legs: { a: 'e8', b: 'f10' } }, { id: 'C1', type: 'cap', uf: 470, rating: 16, legs: { p: 'h10', n: 'h13' } }, { id: 'R1', type: 'resistor', ohm: 1000, legs: { a: 'i10', b: 'i17' } }, { id: 'LED1', type: 'led', color: 'red', legs: { a: 'h17', k: 'h18' } }], wires: [['a8', 'TP8'], ['j13', 'BN13'], ['j18', 'BN18']] }),
       goal: 'See a capacitor store charge and slowly release it.',
       happen: 'Press the button to charge the capacitor. Release it, and the LED stays on for a moment, then fades out.',
       tryit: 'Change the capacitor to 100 &#181;F or the resistor to 220 &#937;. Does the fade get shorter?',

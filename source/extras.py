@@ -70,7 +70,7 @@ FAULTS = [
     ]),
     ("Buttons and dials", [
         ("The button acts randomly", ["The pin may be floating. Use <code>INPUT_PULLUP</code>, or a resistor to GND or 5V.", "A pressed button reads LOW when using <code>INPUT_PULLUP</code>.", "Real buttons bounce. A short delay helps."], "ex-8"),
-        ("The button seems always pressed", ["It may be turned 90 degrees, so its legs are always joined. Rotate it, and place it across the centre gap."], "ex-8"),
+        ("The button seems always pressed", ["You may have wired to two legs of the same joined pair. Place it across the centre gap, and use diagonally opposite legs."], "ex-8"),
         ("The dial's readings don't change", ["Check that the middle leg goes to the analog pin, and the outer legs to 5V and GND."], "ex-10"),
     ]),
     ("Motors and servos", [

@@ -40,7 +40,8 @@
       const text = clean(`${e.goal} ${e.happen} ${e.tryit}`);
       index.push({ hash: 'ex-' + e.n, title: `Example ${e.n}: ${e.title}`, heads: e.title.toLowerCase(), text });
     });
-    index.forEach(x => { x.low = x.text.toLowerCase(); x.tl = x.title.toLowerCase(); });
+    const words = s => ' ' + s.toLowerCase().replace(/[^a-z0-9.+#-]+/g, ' ');
+    index.forEach(x => { x.low = x.text.toLowerCase(); x.tl = x.title.toLowerCase(); x.wb = words(x.text); x.wt = words(x.title); x.wh = words(x.heads); });
   }
 
   function find(q) {
@@ -50,7 +51,7 @@
     for (const x of index) {
       let score = 0, all = true;
       for (const t of terms) {
-        const inT = x.tl.includes(t), inH = x.heads.includes(t), inB = x.low.includes(t);
+        const w = ' ' + t.replace(/[^a-z0-9.+#-]+/g, ' ').trim(), inT = x.wt.includes(w), inH = x.wh.includes(w), inB = x.wb.includes(w);
         if (!inT && !inH && !inB) { all = false; break; }
         score += (inT ? 10 : 0) + (inH ? 4 : 0) + (inB ? 1 : 0) + (x.tl.startsWith(t) ? 6 : 0);
       }

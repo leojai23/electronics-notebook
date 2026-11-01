@@ -42,6 +42,9 @@ git push
 | `extras.py` | The sensor and robot quizzes, robot flashcards and the Fix It Guide |
 | `search.js` | Notebook search |
 | `blocks.js` | Block coding and the ready-made block programs |
+| `unit2.py` | Unit II topics, drawings and quiz |
+| `course.py`, `course.js` | The Arduino coding course and its runner |
+| `handbook.py` | The guide's handbook, answer keys and shopping list |
 
 The block editor is [Blockly](https://github.com/google/blockly) 10.4.3, under the Apache 2.0 licence. A copy is in `vendor/`.
 

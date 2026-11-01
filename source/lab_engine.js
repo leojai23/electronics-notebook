@@ -651,7 +651,7 @@
   const PART_TYPES = {
     resistor: { legs: ['a', 'b'], names: ['one leg', 'the other leg'], label: 'Resistor', def: { ohm: 220 } },
     led: { legs: ['a', 'k'], names: ['the + leg (long)', 'the &#8722; leg (short)'], label: 'LED', def: { color: 'red' } },
-    button: { legs: ['a', 'b'], names: ['one side', 'the other side'], label: 'Push button', def: {} },
+    button: { legs: ['a', 'b'], names: ['one leg', 'the diagonally opposite leg'], label: 'Push button', def: {} },
     pot: { legs: ['a', 'w', 'b'], names: ['the left leg', 'the middle leg', 'the right leg'], label: 'Potentiometer', def: { ohm: 10000 } },
     ldr: { legs: ['a', 'b'], names: ['one leg', 'the other leg'], label: 'Light sensor (LDR)', def: {} },
     cap: { legs: ['p', 'n'], names: ['the + leg (long)', 'the &#8722; leg (stripe)'], label: 'Capacitor', def: { uf: 470, rating: 16 } },

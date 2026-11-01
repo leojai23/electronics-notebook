@@ -176,8 +176,8 @@ def f_mount():
 
 
 def f_wire_motor():
-    o, h = conn_fig([("Pin 5", "Driver A-1A (left motor)", "--w1"), ("Pin 6", "Driver A-1B (left motor)", "--w2"), ("Pin 3", "Driver B-1A (right motor)", "--w3"), ("Pin 11", "Driver B-1B (right motor)", "--w4"), ("GND", "Driver GND and battery &#8722;", "--black")],
-                    "Also: battery + goes to driver VCC. Left motor to Motor A. Right motor to Motor B.")
+    o, h = conn_fig([("Pin 5", "Driver A-IA (left motor)", "--w1"), ("Pin 6", "Driver A-IB (left motor)", "--w2"), ("Pin 3", "Driver B-IA (right motor)", "--w3"), ("Pin 11", "Driver B-IB (right motor)", "--w4"), ("GND", "Driver GND and battery &#8722;", "--black")],
+                    "Battery + to driver VCC. Left motor to Motor A, right to Motor B. Some boards print 1A in place of IA.")
     return plate(o, "Connection diagram from Arduino pins 5, 6, 3, 11 and GND to the motor driver", h)
 
 
@@ -352,8 +352,8 @@ def f_mission():
 R = [
     dict(title="Meet your robot kit", stage="Build", fig=f_kit, time="15 minutes",
          goal="Check that you have every part before you start building.",
-         need=["2-wheel robot chassis kit, with 2 geared motors, 2 wheels and a caster", "Arduino Uno and USB cable", "L9110S motor driver board", "4 &#215; AA battery holder and batteries", "USB power bank, for the Arduino", "HC-SR04 sensor, SG90 servo, 2 line sensors, LEDs, active buzzer and push button, for later exercises", "Jumper wires, small screwdriver and tape"],
-         steps=["Lay out all the parts on a clear table, like the picture.", "Tick each one off against the list above.", "Find the two motors. Each has two wires or two metal tabs.", "Find the motor driver's labels: A-1A, A-1B, B-1A, B-1B, VCC and GND.", "Keep small parts, such as screws, in a tray."],
+         need=["2-wheel robot chassis kit, with 2 geared motors, 2 wheels and a caster", "Arduino Uno and USB cable", "L9110S motor driver board", "4 &#215; AA battery holder and batteries", "USB power bank, for the Arduino", "HC-SR04 sensor, SG90 servo, 2 line sensors, LEDs, active buzzer module and push button, for later exercises", "Jumper wires, small screwdriver and tape"],
+         steps=["Lay out all the parts on a clear table, like the picture.", "Tick each one off against the list above.", "Find the two motors. Each has two wires or two metal tabs.", "Find the motor driver's labels: A-IA, A-IB, B-IA, B-IB, VCC and GND. Some boards print 1A in place of IA.", "Keep small parts, such as screws, in a tray."],
          code=NO_CODE, check="You can name every part and say what job it does.",
          think="Why does the robot use two power sources: AA batteries for the motors and USB for the Arduino?"),
     dict(title="Build the chassis", stage="Build", fig=f_chassis, time="30 minutes",
@@ -458,7 +458,7 @@ void spinRight(int ms) {
                 "\nvoid step(int left, int right, int ms) {\n  drive(left, right);\n  delay(ms);\n  drive(0, 0);\n  delay(150);\n}\n"),
          check="The robot performs your routine, the same way two times in a row.",
          think="The left and right wheels are at different speeds in the curve. How does that make the robot turn?"),
-    dict(title="Add a start button", stage="Add-ons", fig=lambda: f_wire([("Pin 2", "Button, one side", "--w1"), ("GND", "Button, other side", "--black")], "Connection diagram from Arduino pin 2 and GND to a push button", "The button sits across the breadboard's centre gap."), time="15 minutes",
+    dict(title="Add a start button", stage="Add-ons", fig=lambda: f_wire([("Pin 2", "Button, one corner leg", "--w1"), ("GND", "Button, opposite corner leg", "--black")], "Connection diagram from Arduino pin 2 and GND to diagonally opposite legs of a push button", "The button sits across the breadboard's centre gap. Use diagonally opposite legs."), time="15 minutes",
          goal="Stop the robot driving off as soon as it powers up.",
          need=["Your robot", "Push button", "Small breadboard, stuck on the robot", "2 jumper wires"],
          steps=["Stick the small breadboard on the robot.", "Put the button across the centre gap.", "Wire it as the picture shows.", "Upload the sketch below.", "Power on. The robot should wait until you press the button.", "Press it, and the robot should drive for 2 seconds, then wait again."],
@@ -472,10 +472,10 @@ void spinRight(int ms) {
          code=m("  pinMode(RED_LED, OUTPUT);\n  pinMode(GREEN_LED, OUTPUT);\n", "  digitalWrite(GREEN_LED, HIGH);\n  digitalWrite(RED_LED, LOW);\n  drive(180, 180);\n  delay(1500);\n\n  digitalWrite(GREEN_LED, LOW);\n  digitalWrite(RED_LED, HIGH);\n  drive(0, 0);\n  delay(1500);\n", head="const int RED_LED = 12, GREEN_LED = 13;\n"),
          check="Green shows when driving, and red shows when stopped.",
          think="What other things could a robot usefully show with just two lights?"),
-    dict(title="Add a horn", stage="Add-ons", fig=lambda: f_wire([("Pin 4", "Active buzzer +", "--w2"), ("GND", "Active buzzer &#8722;", "--black")], "Connection diagram from Arduino pin 4 and GND to an active buzzer", "Use an active buzzer here. tone() switches off speed control on pins 3 and 11."), time="15 minutes",
+    dict(title="Add a horn", stage="Add-ons", fig=lambda: f_wire([("Pin 4", "Buzzer module signal", "--w2"), ("5V", "Buzzer module VCC", "--red"), ("GND", "Buzzer module GND", "--black")], "Connection diagram from Arduino pin 4, 5V and GND to an active buzzer module", "Avoid tone() here: it interferes with speed control on pins 3 and 11."), time="15 minutes",
          goal="Make the robot beep before it moves.",
-         need=["Your robot", "Active buzzer (it beeps by itself when powered)", "2 jumper wires"],
-         steps=["Find the buzzer's + mark or longer leg.", "Wire it as the picture shows.", "Upload the sketch below.", "It should beep twice, then drive.", "Change the beep pattern to something of your own."],
+         need=["Your robot", "Active buzzer module with a built-in transistor (it beeps by itself)", "3 jumper wires"],
+         steps=["Use a buzzer module, not a bare buzzer. A bare active buzzer often draws 25&#8211;30 mA, which is too much for a pin. With a bare buzzer, use a transistor as in Lab Example 15.", "Check whether your module turns on with HIGH or LOW. Some work the opposite way to this code.", "Wire it as the picture shows.", "Upload the sketch below.", "It should beep twice, then drive.", "Change the beep pattern to something of your own."],
          code=m("  pinMode(BUZZER, OUTPUT);\n", "  beep(150);\n  delay(150);\n  beep(150);\n  delay(300);\n  drive(180, 180);\n  delay(1500);\n  drive(0, 0);\n  delay(3000);\n", "\nvoid beep(int ms) {\n  digitalWrite(BUZZER, HIGH);\n  delay(ms);\n  digitalWrite(BUZZER, LOW);\n}\n", head="const int BUZZER = 4;\n"),
          check="Two beeps come before each drive.",
          think="Why do reversing trucks beep? When should your robot use a warning sound?"),

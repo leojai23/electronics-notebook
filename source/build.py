@@ -7,6 +7,9 @@ from content_b import TOPICS_B, QUIZ, ASSIGNMENTS, CASE, SOURCES
 from robots import R as ROBOTS
 from intro import intro_page
 from extras import SENSOR_QUIZ, ROBOT_QUIZ, ROBOT_CARDS, faults_page
+from unit2 import UNIT2, UNIT2_QUIZ
+from course import L as LESSONS
+from handbook import SESSIONS, MISTAKES, RUBRIC, ROBOT_ANSWERS, SENSOR_ANSWERS, PARTS
 from sensors import S as SENSORS, CATS as SENSOR_CATS
 from sensor_art import picture as sensor_picture, thumb as sensor_thumb
 
@@ -138,6 +141,10 @@ details.fault { background:var(--panel); border:1px solid var(--border); border-
 .code-top { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px } .code-top .code-label { margin:0 } .code-tabs { display:flex; gap:4px } .code-tabs button { padding:4px 12px; font-size:14px }
 .blockbox { height:460px; border:1px solid var(--border); border-radius:6px; overflow:hidden; margin-bottom:8px } .code-box.short { height:210px } .sim-grid.blocks-on { grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) } .src-note { font-size:13.5px; color:var(--soft); margin-top:14px; max-width:none }
 @media (max-width:1040px) { .sim-grid.blocks-on { grid-template-columns:minmax(0,1fr) } }
+.runner { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin:8px 0 10px }
+.run-code { width:100%; display:block; font:13px/1.45 var(--mono); padding:8px 10px; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:6px; white-space:pre; overflow:auto; resize:vertical; tab-size:2 }
+.run-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0 } .run-row button { padding:7px 12px } .run-label { font-weight:700; font-size:13.5px; margin-top:2px } .run-out { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 10px; min-height:44px; max-height:150px; overflow:auto; font:13px/1.4 var(--mono); margin:4px 0 0; white-space:pre-wrap } .run-out.bad { color:var(--bad) }
+.led-wrap { font-size:14px; display:inline-flex; gap:6px; align-items:center } .led-dot { width:15px; height:15px; border-radius:50%; background:var(--border); display:inline-block; border:2px solid var(--soft) } .led-dot.lit { background:var(--pt); border-color:var(--pt); box-shadow:0 0 9px var(--pt) } code { font:0.9em var(--mono); background:var(--accent-soft); padding:1px 4px; border-radius:3px }
 .badge { display:inline-block; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:2px 10px; font-size:13px; font-weight:700 }
 .cards.c4 { grid-template-columns:repeat(4,minmax(0,1fr)) } .cards.c3 { grid-template-columns:repeat(3,minmax(0,1fr)) } .cards.c2 { grid-template-columns:repeat(2,minmax(0,1fr)) }
 .cards.c5 { grid-template-columns:repeat(6,minmax(0,1fr)) } .cards.c5 > a { grid-column:span 2 } .cards.c5 > a:nth-child(n+4) { grid-column:span 3 }
@@ -178,9 +185,10 @@ JS = r"""
     if (window.ELabUI) { if (isSim) window.ELabUI.open(id); else window.ELabUI.close(); }
     if (window.ERobotUI) { if (!isRobot) window.ERobotUI.close(); }
     pages.forEach(function (p) { p.hidden = p !== page; });
-    var navId = isSim ? 'lab' : (isRobot || /^robot-/.test(id)) ? 'robots' : /^sensor-/.test(id) ? 'sensors' : /^quiz/.test(id) ? 'quiz' : id;
+    if (window.ECourse) window.ECourse.stopAll();
+    var navId = isSim ? 'lab' : (isRobot || /^robot-/.test(id)) ? 'robots' : /^code-/.test(id) ? 'coding' : /^guide/.test(id) ? 'guide' : id === 'notes-unit2' ? 'unit2' : /^sensor-/.test(id) ? 'sensors' : /^quiz/.test(id) ? 'quiz' : id;
     links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + navId); });
-    crumb.textContent = id === 'home' ? 'Unit I overview' : (page.getAttribute('data-name') || '');
+    crumb.textContent = id === 'home' ? 'Overview' : (page.getAttribute('data-name') || '');
     if (TOPIC.indexOf(id) > -1) { read[id] = 1; try { localStorage.setItem(KEY, JSON.stringify(read)); } catch (e) {} }
     paint();
     side.open = !(isSim || isRobot || window.matchMedia('(max-width:780px)').matches);
@@ -192,6 +200,8 @@ JS = r"""
   if (window.ERobotUI) window.ERobotUI.init();
   if (window.EBlocks) { window.EBlocks.attach('sim', 'lab', window.ELabUI.blockHost()); window.EBlocks.attach('rs', 'robot', window.ERobotUI.blockHost()); }
   if (window.EBuildLog) window.EBuildLog.init();
+  if (window.ECourse) window.ECourse.init();
+  if (window.EParts) window.EParts.init();
   addEventListener('beforeprint', function () { document.querySelectorAll('details.ans').forEach(function (d) { d.setAttribute('data-was', d.open ? '1' : ''); d.open = true; }); });
   addEventListener('afterprint', function () { document.querySelectorAll('details.ans').forEach(function (d) { d.open = d.getAttribute('data-was') === '1'; }); });
   addEventListener('hashchange', route);
@@ -271,7 +281,7 @@ def topic_page(i, t):
     nav = (f'<a href="#{prev_["slug"]}">&larr; Previous: {prev_["short"]}</a>' if prev_ else '<a href="#intro">&larr; Introduction</a>')
     nav += (f'<a href="#{next_["slug"]}">Next: {next_["short"]} &rarr;</a>' if next_ else '<a href="#flashcards">Next: Flashcards &rarr;</a>')
     return f"""
-<section id="page-{t['slug']}" data-page data-name="Topic {i + 1}" hidden>
+<section id="page-{t['slug']}" data-page data-name="Unit I topic {i + 1}" hidden>
 <h1>{t['title']}</h1><p class="sub">{UNIT} &middot; Topic {i + 1}</p>
 <h2>1. Overview</h2><p>{t['overview']}</p>
 <figure><div class="fig-scroll">{figure(t['slug'])}</div><figcaption>Figure {i + 1}. {t['title']}: what it looks like and how it's drawn on a circuit diagram. Illustration, not to scale.</figcaption></figure>
@@ -297,12 +307,14 @@ def home():
     src = "".join(f'<li><a href="{u}">{n}</a></li>' for n, u in SOURCES)
     return f"""
 <section id="page-home" data-page data-name="Unit I overview">
-<h1>Electronics Study Notebook</h1><p class="sub">{UNIT}: Essential Components &middot; 9 topics, 22 sensors, 28 simulated examples and 25 robot exercises</p>
+<h1>Electronics Study Notebook</h1><p class="sub">17 topics, 22 sensors, 12 coding lessons, 28 simulated examples and 25 robot exercises</p>
 <p>Learn how electronics works, then use it to build a robot. This notebook is written for a young beginner working with an adult guide, and it starts from zero.</p>
 <div class="links"><a href="#intro">New here? Read the Introduction first</a></div>
-<h2>Unit I topics</h2><div class="cards">{cards}</div>
-<h2>Build things</h2><div class="links"><a href="#lab">Practical Lab: 28 examples with a simulator</a><a href="#robots">Robot Exercises: 25 builds</a><a href="#sensors">Sensors: 22 explained</a><a href="#buildlog">Build Log</a><a href="#faults">Fix It Guide</a></div>
-<h2>More for this unit</h2><div class="links"><a href="#flashcards">Flashcards</a><a href="#assignments">Assignments</a><a href="#quiz">Quiz</a><a href="#notes">Notes</a><a href="#case-study">Case Study</a></div>
+<h2>Unit I: essential parts</h2><div class="cards">{cards}</div>
+<h2>Unit II: more core parts</h2><div class="cards c4">{"".join(f'<a class="tc" href="#{t["slug"]}">{thumb(t["slug"])}<div><b>{t["short"]}</b><span>{t["blurb"]}</span></div></a>' for t in UNIT2)}</div>
+<h2>Learn and build</h2><div class="links"><a href="#coding">Coding Course: 12 lessons</a><a href="#lab">Practical Lab: 28 examples with a simulator</a><a href="#robots">Robot Exercises: 25 builds</a><a href="#sensors">Sensors: 22 explained</a><a href="#buildlog">Build Log</a><a href="#faults">Fix It Guide</a></div>
+<h2>For the adult guide</h2><div class="links"><a href="#guide">Guide's Handbook</a><a href="#guide-answers">Answer Keys</a><a href="#parts">Shopping List</a></div>
+<h2>Study tools</h2><div class="links"><a href="#flashcards">Flashcards</a><a href="#assignments">Assignments</a><a href="#quiz">Quiz</a><a href="#notes">Notes</a><a href="#case-study">Case Study</a></div>
 <h2>Before you start</h2>
 <div class="safe"><h3>Four safety rules for every build</h3>{ul(["<strong>Check first.</strong> Your guide looks over the wiring before power goes on.", "<strong>Unplug to change.</strong> Disconnect all power before moving any wire.", "<strong>Hot, smelly or smoking? Unplug right away.</strong> Tell your guide and let it cool.", "<strong>Low power only.</strong> Use USB and AA batteries. Never connect anything here to a wall socket."])}</div>
 <h2>Sources</h2><p class="sub">Specs were checked against these pages. Other figures, such as typical LED voltages and motor ranges, are general electronics knowledge and approximate. Check the sheet for your exact part.</p><ul class="tight">{src}</ul>
@@ -314,7 +326,7 @@ def flash():
     return f"""
 <section id="page-flashcards" data-page data-name="Flashcards" hidden>
 <h1>Flashcards</h1><p class="sub">Choose a deck: Unit I topics, sensors or robot terms</p>
-<div class="fc-row"><label for="deck">Deck</label><select id="deck"><option value="g:topics">Unit I: all topics</option>{opts}<option value="g:sensors">All 22 sensors</option><option value="g:robots">Robot terms</option><option value="all">Everything</option></select></div>
+<div class="fc-row"><label for="deck">Deck</label><select id="deck"><option value="g:topics">Unit I: all topics</option>{opts}<option value="g:topics2">Unit II: all topics</option>{"".join(f'<option value="{t["slug"]}">{t["short"]}</option>' for t in UNIT2)}<option value="g:sensors">All 22 sensors</option><option value="g:robots">Robot terms</option><option value="all">Everything</option></select></div>
 <button class="fc" id="fc" type="button"></button>
 <div class="fc-row"><button class="alt" id="fc-prev" type="button">Previous</button><button id="fc-next" type="button">Next</button><button class="alt" id="fc-shuffle" type="button">Shuffle</button><span class="marks" id="fc-pos"></span></div>
 </section>"""
@@ -328,7 +340,7 @@ def assignments():
 
 
 def quiz_links():
-    return '<div class="links"><a href="#quiz">Unit I quiz</a><a href="#quiz-sensors">Sensors quiz</a><a href="#quiz-robots">Robots quiz</a></div>'
+    return '<div class="links"><a href="#quiz">Unit I quiz</a><a href="#quiz-unit2">Unit II quiz</a><a href="#quiz-sensors">Sensors quiz</a><a href="#quiz-robots">Robots quiz</a></div>'
 
 
 def quiz_page(pid, name, title, sub_, questions, prefix):
@@ -343,6 +355,7 @@ def quiz_page(pid, name, title, sub_, questions, prefix):
 
 def quiz():
     return (quiz_page("page-quiz", "Quiz", f"{UNIT}: Quiz", "Choose an answer for each, then select Submit to see your score.", QUIZ, "q")
+            + quiz_page("page-quiz-unit2", "Unit II Quiz", "Unit II: Quiz", "Test what you learned in Unit II.", UNIT2_QUIZ, "uq")
             + quiz_page("page-quiz-sensors", "Sensors Quiz", "Sensors Quiz", "Test what you know about the 22 sensors.", SENSOR_QUIZ, "sq")
             + quiz_page("page-quiz-robots", "Robots Quiz", "Robots Quiz", "Test what you learned from the robot exercises.", ROBOT_QUIZ, "rq"))
 
@@ -456,6 +469,127 @@ def buildlog_page():
 </section>"""
 
 
+UNIT2_LABEL = "Unit II"
+
+
+def unit2_topic(i, t):
+    prev_ = UNIT2[i - 1] if i else None
+    next_ = UNIT2[i + 1] if i < len(UNIT2) - 1 else None
+    rows = "".join(f'<tr><td><strong>{a}</strong></td><td class="val">{b_}</td><td>{c}</td></tr>' for a, b_, c in t["props"])
+    terms = "".join(f"<dt>{a}</dt><dd>{b_}</dd>" for a, b_ in t["terms"])
+    prac = "".join(f'<li>{q} <span class="marks">({k})</span>{ans(a)}</li>' for q, k, a in t["practice"])
+    bloom = "".join(f'<h3>{lv}</h3><ol class="q">' + "".join(f'<li>{q} <span class="marks">({code})</span></li>' for q in t[code.lower()]) + "</ol>" for lv, code in [("K2: Understanding", "K2"), ("K3: Applying", "K3"), ("K4: Analyzing", "K4")])
+    nav = (f'<a href="#{prev_["slug"]}">&larr; Previous: {prev_["short"]}</a>' if prev_ else '<a href="#unit2">&larr; Unit II overview</a>')
+    nav += (f'<a href="#{next_["slug"]}">Next: {next_["short"]} &rarr;</a>' if next_ else '<a href="#quiz-unit2">Next: Unit II Quiz &rarr;</a>')
+    link_txt = "".join(f'<li><a href="#{a}">{b_}</a></li>' for a, b_ in t["links"])
+    links = f'<h2>6. Practical Examples</h2><ol class="q">{link_txt}</ol>' if t["links"] else ""
+    src = " &middot; ".join('<a href="%s">%s</a> (%s)' % (u, n_, "maker's data sheet" if k.startswith("Maker") else k.lower()) for n_, u, k in t["refs"]) or "general electronics knowledge. Check the sheet for your part."
+    return f"""<section id="page-{t['slug']}" data-page data-name="Unit II topic {i + 1}" hidden>
+<h1>{t['title']}</h1><p class="sub">{UNIT2_LABEL} &middot; Topic {i + 1}</p>
+<h2>1. Overview</h2><p>{t['overview']}</p>
+<figure><div class="fig-scroll">{figure(t['slug'])}</div><figcaption>Figure U{i + 1}. {t['title']}. Illustration, not to scale.</figcaption></figure>
+<h2>2. Detailed Notes</h2>
+<h3>2.1 Name and look</h3><p>{t['look']}</p><h3>2.2 Purpose</h3><p>{t['purpose']}</p>
+<h3>2.3 Key properties</h3><div class="tw"><table><tr><th>Property</th><th>Unit or value</th><th>What it means</th></tr>{rows}</table></div>
+<h3>2.4 Example everyday usage</h3><p>{t['everyday']}</p><h3>2.5 Sample robotics application</h3><p>{t['robot']}</p>
+<div class="safe"><h3>2.6 Handling and safety</h3>{ul(t['safety'])}</div>
+<h2>3. Key Terms</h2><dl class="terms">{terms}</dl>
+<div class="exam"><h2>Exam-Prep Summary</h2>{ul(t['exam'])}</div>
+<h2>4. Practice Questions</h2><ol class="q">{prac}</ol>
+<h2>5. Bloom's Taxonomy Level of Distribution</h2>{bloom}
+{links}
+<p class="src-note"><strong>Where these numbers come from:</strong> {src}</p>
+<div class="pn">{nav}</div>
+</section>"""
+
+
+def unit2_pages():
+    cards_ = "".join(f'<a class="tc" href="#{t["slug"]}">{thumb(t["slug"])}<div><b>{t["short"]}</b><span>{t["blurb"]}</span></div></a>' for t in UNIT2)
+    recap = "".join(f'<tr><td><a href="#{t["slug"]}"><strong>{t["short"]}</strong></a></td><td>{t["blurb"]}</td><td class="val">{t["props"][0][1]}</td></tr>' for t in UNIT2)
+    body = "".join(f'<h3>{i + 1}. {t["title"]}</h3>{ul(t["exam"])}' for i, t in enumerate(UNIT2))
+    over = f"""<section id="page-unit2" data-page data-name="Unit II overview" hidden><h1>Unit II: More Core Parts</h1><p class="sub">8 topics on the parts that support your circuits and robot</p>
+<p>Unit I covered the parts in most beginner circuits. This unit explains the parts that the Lab and robot exercises also rely on: how to get input from a person, make sound, protect a circuit, run motors, switch separate circuits and power it all safely.</p>
+<div class="cards c4">{cards_}</div><div class="links"><a href="#quiz-unit2">Unit II Quiz</a><a href="#notes-unit2">Unit II Notes</a><a href="#flashcards">Flashcards</a></div></section>"""
+    note = f"""<section id="page-notes-unit2" data-page data-name="Unit II Notes" hidden><h1>Unit II: Notes</h1><p class="sub">Key points from every topic, for quick revision.</p><h2>One-page recap</h2><div class="tw"><table><tr><th>Part</th><th>Its job</th><th>Main value</th></tr>{recap}</table></div><h2>Key points by topic</h2>{body}</section>"""
+    return over + "".join(unit2_topic(i, t) for i, t in enumerate(UNIT2)) + note
+
+
+def course_pages():
+    tasks = {}
+    idx = "".join(f'<li><a href="#code-{l["n"]}">{l["title"]}</a><span id="d{l["n"]}" data-done-for="t{l["n"]}-0" class="done"></span><span class="marks">{l["goal"]}</span></li>' for l in LESSONS)
+    out = f"""<section id="page-coding" data-page data-name="Coding Course" hidden><h1>Arduino Coding Course</h1><p class="sub">12 short lessons. Run every example, then finish its task.</p>
+<p>Each lesson has code you can run and change right here, plus a task that checks your answer. No hardware is needed. When you're ready, try the same ideas in the <a href="#lab">Practical Lab</a>. If typing feels hard at first, use the Blocks tab in the Lab, then look at the code it writes.</p>
+<p><strong id="course-sum"></strong></p><ol class="ex-list">{idx}</ol>
+<h2>What this course leaves out</h2><p>These lessons run in this notebook's simplified simulator, which covers common Arduino code. It doesn't run <em>switch</em>, Serial input or most libraries. Everything taught here also works on a real Arduino.</p></section>"""
+    for l in LESSONS:
+        n = l["n"]
+        secs = "".join(f"<h3>{h}</h3>{c}" for h, c in l["sections"])
+        io = l["io"]
+        ctl = ""
+        if 13 in io:
+            ctl += '<span class="led-wrap"><span class="led-dot" data-led></span> Pin 13 LED</span>'
+        if "button" in io:
+            ctl += '<button type="button" class="alt hold" data-hold>Hold button (pin 2)</button>'
+        if "dial" in io:
+            ctl += f'<label class="ctl-chk">Dial (A0) <input type="range" id="dial-{n}" data-dial min="0" max="100" value="50"></label>'
+        lab = f'<p><strong>See it with a circuit:</strong> <a href="#{l["lab"]}">open the matching Lab example</a>.</p>' if l["lab"] else ""
+        task_html = ""
+        for i, t_ in enumerate(l["tasks"]):
+            tid = f"t{n}-{i}"
+            tasks[tid] = {k: t_[k] for k in ("run", "expect") if k in t_}
+            if "press" in t_:
+                tasks[tid]["press"] = t_["press"]
+            start = html_mod.escape(t_["start"], quote=False)
+            task_html += f"""<h2>Your turn</h2><p>{t_['ask']}<span class="done" data-done-for="{tid}"></span></p>
+<div class="runner" data-key="course-{tid}" data-task="{tid}"><label class="code-label" for="ta-{tid}">Your code</label><textarea id="ta-{tid}" class="run-code" rows="{min(16, t_['start'].count(chr(10)) + 2)}" spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off">{start}</textarea>
+<div class="run-row"><button type="button" data-run>Run</button><button type="button" data-check>Check my code</button><button type="button" class="alt" data-reset>Start again</button>{ctl}</div><div class="run-label">Serial Monitor</div><pre class="run-out" aria-live="off"></pre><div class="task-res" aria-live="polite"></div></div>
+<details class="ans"><summary>Show a hint</summary><div class="ans-box">{t_['hint']}</div></details>
+<details class="ans"><summary>Show a model answer</summary><div class="ans-box"><pre class="code">{html_mod.escape(t_['model'], quote=False)}</pre></div></details>"""
+        prev_ = f'<a href="#code-{n - 1}">&larr; Lesson {n - 1}</a>' if n > 1 else '<a href="#coding">&larr; All lessons</a>'
+        next_ = f'<a href="#code-{n + 1}">Lesson {n + 1} &rarr;</a>' if n < len(LESSONS) else '<a href="#lab">Practical Lab &rarr;</a>'
+        out += f"""<section id="page-code-{n}" data-page data-name="Coding Lesson {n}" hidden><h1>Lesson {n}: {l['title']}</h1><p class="sub">{l['goal']}</p>{secs}
+<h2>Try it</h2><p>Select Run. Then change something, and run it again.</p>
+<div class="runner" data-key="course-ex{n}"><label class="code-label" for="ex-ta-{n}">Example code</label><textarea id="ex-ta-{n}" class="run-code" rows="{min(22, l['code'].count(chr(10)) + 2)}" spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off">{html_mod.escape(l['code'], quote=False)}</textarea>
+<div class="run-row"><button type="button" data-run>Run</button><button type="button" class="alt" data-reset>Start again</button>{ctl}</div><div class="run-label">Serial Monitor</div><pre class="run-out" aria-live="off"></pre></div>
+{lab}{task_html}<div class="pn">{prev_}{next_}</div></section>"""
+    return out, tasks
+
+
+def guide_pages():
+    sess = ""
+    for i, (name, links, goal, prep, qs, watch, done) in enumerate(SESSIONS, 1):
+        ls = " &middot; ".join(f'<a href="#{a}">{b_}</a>' for a, b_ in links)
+        sess += f"""<details class="fault"><summary>Session {i}: {name}</summary><div class="ans-box"><p><strong>Goal:</strong> {goal}</p><p><strong>Use:</strong> {ls}</p><p><strong>Before the session:</strong> {prep}</p><p><strong>Questions to ask:</strong></p>{ul(qs)}<p><strong>Watch for:</strong> {watch}</p><p style="margin:0"><strong>Done when:</strong> {done}</p></div></details>"""
+    mist = "".join(f"<tr><td><strong>{a}</strong></td><td>{b_}</td></tr>" for a, b_ in MISTAKES)
+    rub = "".join(f"<tr><td><strong>{a}</strong></td><td>{b_}</td><td>{c}</td><td>{d}</td></tr>" for a, b_, c, d in RUBRIC)
+    rans = "".join(f'<details class="fault"><summary>Exercise {r["n"]}: {r["title"]}</summary><div class="ans-box"><p><strong>Question:</strong> {r["think"]}</p><p style="margin:0"><strong>A good answer:</strong> {ROBOT_ANSWERS[r["n"]]}</p></div></details>' for r in ROBOTS)
+    sans = "".join(f'<details class="fault"><summary>{x["short"]}</summary><div class="ans-box"><p><strong>Question:</strong> {x["think"]}</p><p style="margin:0"><strong>A good answer:</strong> {SENSOR_ANSWERS[x["slug"]]}</p></div></details>' for x in SENSORS)
+    rules = ["Read the safety notes on any project page before the session, especially those marked for adult supervision.", "Check the wiring and battery direction before power goes on, every time.", "Keep this work to USB and AA batteries. Don't let any project connect to a wall socket.", "The Geiger counter and ECG projects need a capable adult throughout. Skip them if you're not comfortable with them.", "Treat gas, alcohol, radiation, pulse and ECG projects as learning only."]
+    return f"""<section id="page-guide" data-page data-name="Guide's Handbook" hidden><h1>Guide's Handbook</h1><p class="sub">For the adult working with the student. No electronics experience is needed.</p>
+<p><strong>Your job is to keep it safe and ask good questions. You don't need to know the answers.</strong> Learning alongside the student works well, and it shows them how to deal with not knowing something.</p>
+<div class="links"><a href="#guide-answers">Answer keys</a><a href="#parts">Shopping List</a><a href="#faults">Fix It Guide</a><a href="#buildlog">Build Log</a></div>
+<h2>How to run a session</h2><ol class="steps"><li><strong>Start by recalling.</strong> Ask what they remember from last time.</li><li><strong>Set one goal.</strong> Say what you'll have working by the end.</li><li><strong>Let them do it.</strong> Keep your hands off the parts, and let them make the mistakes.</li><li><strong>Check safety.</strong> Look over the wiring before power goes on.</li><li><strong>Finish with a question.</strong> Ask what they learned, and what they'd try next.</li></ol>
+<div class="safe"><h3>Your safety checklist</h3>{ul(rules)}</div>
+<h2>Suggested sessions</h2><p>This is a suggested order, not a schedule. A session of 45 to 60 minutes suits many students, but follow their pace, and split or repeat sessions freely.</p>{sess}
+<h2>Common situations</h2><div class="tw"><table><tr><th>What you see</th><th>What to try</th></tr>{mist}</table></div>
+<h2>Seeing progress</h2><p>Use this as a conversation, not a test.</p><div class="tw"><table><tr><th>Skill</th><th>Getting started</th><th>Growing</th><th>Confident</th></tr>{rub}</table></div>
+</section><section id="page-guide-answers" data-page data-name="Answer Keys" hidden><h1>Answer Keys</h1><p class="sub">Good answers to the Think Like an Engineer questions</p>
+<p>Many of these have more than one good answer. Accept any reasoning that makes sense, and ask the student to test it. Answers to practice questions and quizzes are on their own pages.</p><p><a href="#guide">&larr; Guide's Handbook</a></p>
+<h2>Robot exercises</h2>{rans}<h2>Sensors</h2>{sans}</section>"""
+
+
+def parts_page():
+    groups = ""
+    for gi, (stage, use, items) in enumerate(PARTS):
+        rows = "".join(f'<tr><td><label class="ctl-chk"><input type="checkbox" id="pt-{gi}-{i}" data-part="{gi}-{i}" data-name="{html_mod.escape(name, quote=True)}"> {name}</label></td><td>{qty}</td><td>{why}</td></tr>' for i, (name, qty, why) in enumerate(items))
+        groups += f'<h2>{stage}</h2><p class="sub">{use}</p><div class="tw"><table><tr><th>Part</th><th>How many</th><th>What it\'s for</th></tr>{rows}</table></div>'
+    return f"""<section id="page-parts" data-page data-name="Shopping List" hidden><h1>Shopping List</h1><p class="sub">Buy in stages, and tick off what you have</p>
+<p><strong>You don't need to buy anything to start.</strong> The simulators and lessons work in a browser. When you're ready, start with Stage 1. Many Arduino starter kits include most of it, so compare before buying separately.</p>
+<p><strong id="parts-sum"></strong></p><button type="button" id="parts-copy">Copy what I still need</button><textarea id="parts-out" hidden readonly aria-label="Parts you still need" style="width:100%;height:120px;margin-top:8px;font:13px var(--mono);background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px"></textarea>
+{groups}
+<h2>Before you buy</h2><ul class="tight"><li><strong>Compatible boards:</strong> many low-cost Uno-style boards work well, but some need a USB driver, such as CH340.</li><li><strong>Uno R3 or R4:</strong> this notebook assumes an R3. An R4 works too, but it needs bigger LED resistors.</li><li><strong>Extra sensors:</strong> buy the other sensors only if a project needs them. Their pages explain the parts. The Geiger counter and ECG projects need adult supervision.</li><li><strong>Batteries:</strong> avoid lithium polymer (LiPo) packs for these projects. See <a href="#power">Batteries and Power</a>.</li><li><strong>Prices and stock</strong> vary a lot by country and seller, so this list doesn't give them.</li></ul></section>"""
+
+
 def lab_pages():
     idx = """<section id="page-lab" data-page data-name="Practical Lab" hidden>
 <h1>Practical Lab</h1><p class="sub">28 basic examples you can build, run and check in your browser</p>
@@ -506,7 +640,7 @@ def robot_pages():
 <div class="links"><a href="#rsim-6">Open the Robot Simulator</a><a href="#buildlog">Record your real builds</a><a href="#quiz-robots">Take the Robots quiz</a></div>
 <div class="safe"><h3>Robot safety</h3>{ul(rules)}</div>
 {idx}
-<h2>Extra parts you'll need</h2><p>Beyond the nine parts in Unit I, this project uses a 2-wheel chassis kit with geared motors, an L9110S motor driver, a USB power bank, 2 line sensor modules, an active buzzer and a push button.</p>
+<h2>Extra parts you'll need</h2><p>Beyond the nine parts in Unit I, this project uses a 2-wheel chassis kit with geared motors, an L9110S motor driver, a USB power bank, 2 line sensor modules, an active buzzer module and a push button. The <a href="#parts">Shopping List</a> has it all.</p>
 </section>"""
     for r in ROBOTS:
         n = r["n"]
@@ -531,16 +665,19 @@ def robot_pages():
     return out
 
 
+COURSE_HTML, COURSE_TASKS = course_pages()
 side_topics = "".join(
     f'<li><a href="#{t["slug"]}"><span class="n">{i + 1}</span><span>{t["short"]}</span><span class="tick" id="tick-{t["slug"]}"></span></a></li>' for i, t in enumerate(TOPICS))
+side_u2 = "".join(f'<li><a href="#{t["slug"]}"><span class="n">{i + 1}</span><span>{t["short"]}</span><span class="tick" id="tick-{t["slug"]}"></span></a></li>' for i, t in enumerate(UNIT2))
 side_more = "".join(f'<li><a href="#{a}">{b}</a></li>' for a, b in [("flashcards", "Flashcards"), ("assignments", "Assignments"), ("quiz", "Quiz"), ("notes", "Notes"), ("case-study", "Case Study")])
 
 cards = [{"s": t["slug"], "g": "topics", "t": a, "d": b} for t in TOPICS for a, b in t["terms"]]
 cards += [{"s": x["slug"], "g": "sensors", "t": x["short"], "d": f'Senses: {x["input"]}. Output: {x["otype"]}. Example part: {x["model"]}.'} for x in SENSORS]
 cards += [{"s": "robots", "g": "robots", "t": a, "d": b} for a, b in ROBOT_CARDS]
-js = JS % {"topics": json.dumps([t["slug"] for t in TOPICS]), "cards": json.dumps(cards, ensure_ascii=False)}
+cards += [{"s": t["slug"], "g": "topics2", "t": a, "d": b} for t in UNIT2 for a, b in t["terms"]]
+js = JS % {"topics": json.dumps([t["slug"] for t in TOPICS + UNIT2]), "cards": json.dumps(cards, ensure_ascii=False)}
 
-LAB_JS = "\n".join(open(f, encoding="utf-8").read() for f in ["lab_engine.js", "lab_examples.js", "lab_ui.js", "robot_engine.js", "search.js", "blocks.js"]) + "\nwindow.ROBOT_CODE = " + json.dumps({r["n"]: {"title": r["title"], "code": r["code"]} for r in ROBOTS if r["code"]}, ensure_ascii=False).replace("</", "<\\/") + ";\nwindow.ROBOT_TITLES = " + json.dumps({r["n"]: r["title"] for r in ROBOTS}, ensure_ascii=False) + ";\n" + open("robot_ui.js", encoding="utf-8").read()
+LAB_JS = "\n".join(open(f, encoding="utf-8").read() for f in ["lab_engine.js", "lab_examples.js", "lab_ui.js", "robot_engine.js", "search.js", "blocks.js", "course.js"]) + "\nwindow.COURSE_TASKS = " + json.dumps(COURSE_TASKS, ensure_ascii=False) + ";\nwindow.ROBOT_CODE = " + json.dumps({r["n"]: {"title": r["title"], "code": r["code"]} for r in ROBOTS if r["code"]}, ensure_ascii=False).replace("</", "<\\/") + ";\nwindow.ROBOT_TITLES = " + json.dumps({r["n"]: r["title"] for r in ROBOTS}, ensure_ascii=False) + ";\n" + open("robot_ui.js", encoding="utf-8").read()
 ARROW_DEFS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="r-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--pt)"/></marker></defs></svg>'
 
 html = f"""<title>Electronics Study Notebook</title>
@@ -548,19 +685,22 @@ html = f"""<title>Electronics Study Notebook</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>{CSS}</style>
 {DEFS}{ARROW_DEFS}
-<header class="site"><div class="site-in"><a class="brand" href="#home">Electronics Study Notebook</a><div class="search" role="search"><input type="search" id="nb-search" placeholder="Search (press /)" aria-label="Search the notebook" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="nb-results"><div id="nb-results" role="listbox" hidden></div></div><span class="crumbs"><a href="#home">Home</a> / {UNIT} / <span id="crumb">Unit I overview</span></span></div></header>
+<header class="site"><div class="site-in"><a class="brand" href="#home">Electronics Study Notebook</a><div class="search" role="search"><input type="search" id="nb-search" placeholder="Search (press /)" aria-label="Search the notebook" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="nb-results"><div id="nb-results" role="listbox" hidden></div></div><span class="crumbs"><a href="#home">Home</a> / <span id="crumb">Overview</span></span></div></header>
 <div class="layout" id="layout">
-<details class="side" id="side"><summary>Unit I contents</summary>
-<ul style="margin-top:8px"><li><a href="#home">Unit I overview</a></li><li><a href="#intro">Introduction</a></li></ul>
-<h3>Unit I topics</h3><ol>{side_topics}</ol>
+<details class="side" id="side"><summary>Contents</summary>
+<ul style="margin-top:8px"><li><a href="#home">Home</a></li><li><a href="#intro">Introduction</a></li></ul>
+<h3>Unit I: essential parts</h3><ol>{side_topics}</ol>
+<h3>Unit II: more core parts</h3><ul><li><a href="#unit2">Unit II overview</a></li></ul><ol>{side_u2}</ol>
 <h3>Sensors</h3><ul><li><a href="#sensors">All 22 sensors</a></li></ul>
+<h3>Learn to code</h3><ul><li><a href="#coding">Coding Course</a></li></ul>
 <h3>Build things</h3><ul><li><a href="#lab">Practical Lab</a></li><li><a href="#robots">Robot Exercises</a></li><li><a href="#buildlog">Build Log</a></li></ul>
 <h3>Study tools</h3><ul><li><a href="#faults">Fix It Guide</a></li>{side_more}</ul>
+<h3>For the guide</h3><ul><li><a href="#guide">Guide's Handbook</a></li><li><a href="#parts">Shopping List</a></li></ul>
 <div class="prog"><span id="prog-n"></span><div class="bar"><i id="prog-bar"></i></div></div>
 </details>
-<main>{home()}{"".join(topic_page(i, t) for i, t in enumerate(TOPICS))}{intro_page(ul, len(SENSORS), len(ROBOTS), 28)}{sensor_pages()}{lab_pages()}{robot_pages()}{rsim_page()}{buildlog_page()}{faults_page(ul)}{flash()}{assignments()}{quiz()}{notes()}{case()}</main>
+<main>{home()}{"".join(topic_page(i, t) for i, t in enumerate(TOPICS))}{intro_page(ul, len(SENSORS), len(ROBOTS), 28)}{unit2_pages()}{COURSE_HTML}{guide_pages()}{parts_page()}{sensor_pages()}{lab_pages()}{robot_pages()}{rsim_page()}{buildlog_page()}{faults_page(ul)}{flash()}{assignments()}{quiz()}{notes()}{case()}</main>
 </div>
-<footer>Unit I: Essential Components</footer>
+<footer>Electronics Study Notebook</footer>
 <script>{LAB_JS}</script>
 <script>{js}</script>
 """
