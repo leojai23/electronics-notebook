@@ -1,0 +1,15 @@
+{
+  "name": "Electronics Study Notebook",
+  "short_name": "Electronics",
+  "description": "Electronics and robotics study notebook with a circuit simulator, a robot simulator and 22 sensors.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101613",
+  "theme_color": "#0d6049",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
