@@ -19,6 +19,14 @@ python source/build.py
 
 This rebuilds `index.html` and `sw.js` here, and writes `source/electronics-study-notebook.html`, the same notebook without the install and print additions. Don't edit `index.html` directly, because a rebuild replaces it.
 
+To update the [live site](https://leojai23.github.io/electronics-notebook/), run these from this folder, then allow about a minute:
+
+```
+git add -A
+git commit -m "Describe your change"
+git push
+```
+
 | File | What it holds |
 | --- | --- |
 | `build.py` | Page layout, styles, navigation and the build |
@@ -33,6 +41,9 @@ This rebuilds `index.html` and `sw.js` here, and writes `source/electronics-stud
 | `robot_engine.js`, `robot_ui.js` | The robot simulator, its checks and the Build Log |
 | `extras.py` | The sensor and robot quizzes, robot flashcards and the Fix It Guide |
 | `search.js` | Notebook search |
+| `blocks.js` | Block coding and the ready-made block programs |
+
+The block editor is [Blockly](https://github.com/google/blockly) 10.4.3, under the Apache 2.0 licence. A copy is in `vendor/`.
 
 ## Testing
 

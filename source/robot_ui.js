@@ -19,7 +19,7 @@
       $('rs-reset').addEventListener('click', () => { this.stop(); this.applyStart(true); this.draw(); this.status('Robot back at its starting point.'); });
       $('rs-check').addEventListener('click', () => this.check());
       $('rs-restore').addEventListener('click', () => { if (this.n) $('rs-confirm').hidden = false; });
-      $('rs-yes').addEventListener('click', () => { store.del('erobot-' + this.n); $('rs-confirm').hidden = true; this.open(this.n); this.status('Original code restored.'); });
+      $('rs-yes').addEventListener('click', () => { store.del('erobot-' + this.n); if (window.EBlocks) window.EBlocks.reset('rs', this.n); $('rs-confirm').hidden = true; this.open(this.n); this.status('Original code restored.'); });
       $('rs-no').addEventListener('click', () => { $('rs-confirm').hidden = true; });
       $('rs-left').addEventListener('click', () => this.turn(-15));
       $('rs-right').addEventListener('click', () => this.turn(15));
@@ -63,9 +63,19 @@
       const next = n < 25 ? `<a href="#rsim-${n + 1}">Exercise ${n + 1} &rarr;</a>` : '<a href="#robots">All exercises &rarr;</a>';
       $('rs-pn').innerHTML = prev + next;
       this.draw(); this.read();
+      if (window.EBlocks) window.EBlocks.onOpen('rs', n);
       this.status('Select Start to run this code. When stopped, you can drag the robot to a new starting point.');
     },
     close() { this.stop(); },
+    blockHost() {
+      const U = this;
+      return {
+        number() { return U.n; },
+        getCode() { return U.code; },
+        isEdited() { return U.code !== CODE[U.n].code; },
+        setBlocksCode(code) { const was = !!U.sim; U.code = code; $('rs-code').value = code; U.gutter(); U.mark(null); store.set('erobot-' + U.n, code); if (was) U.stop(); },
+      };
+    },
     opts() { return { map: this.map, start: Object.assign({}, this.start), mismatch: $('rs-mis').checked ? 0.04 : 0 }; },
     begin() {
       const s = R.makeSim(this.n, this.code, this.opts());

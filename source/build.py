@@ -135,6 +135,9 @@ pre.code { background:var(--panel); border:1px solid var(--border); border-radiu
 #nb-results a { display:block; padding:8px 12px; text-decoration:none; color:var(--text); border-bottom:1px solid var(--border) } #nb-results a:hover, #nb-results a.on { background:var(--accent-soft) } #nb-results b { display:block; font:700 15px var(--display) } #nb-results span { display:block; font-size:13.5px; line-height:1.35; color:var(--soft) } #nb-results .sr-g { font-size:11.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--accent) } #nb-results mark { background:var(--pt); color:#000; border-radius:2px } .sr-none { padding:12px; font-size:14.5px }
 details.fault { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:9px 13px; margin-bottom:8px; max-width:none } details.fault summary { font-weight:700; cursor:pointer } details.fault .ans-box { border:0; padding:6px 0 0; margin:0; background:transparent } details.fault code { font:13px var(--mono); background:var(--accent-soft); padding:1px 4px; border-radius:3px }
 .layout.wide ~ #print-btn { display:none }
+.code-top { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px } .code-top .code-label { margin:0 } .code-tabs { display:flex; gap:4px } .code-tabs button { padding:4px 12px; font-size:14px }
+.blockbox { height:460px; border:1px solid var(--border); border-radius:6px; overflow:hidden; margin-bottom:8px } .code-box.short { height:210px } .sim-grid.blocks-on { grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) } .src-note { font-size:13.5px; color:var(--soft); margin-top:14px; max-width:none }
+@media (max-width:1040px) { .sim-grid.blocks-on { grid-template-columns:minmax(0,1fr) } }
 .badge { display:inline-block; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:2px 10px; font-size:13px; font-weight:700 }
 .cards.c4 { grid-template-columns:repeat(4,minmax(0,1fr)) } .cards.c3 { grid-template-columns:repeat(3,minmax(0,1fr)) } .cards.c2 { grid-template-columns:repeat(2,minmax(0,1fr)) }
 .cards.c5 { grid-template-columns:repeat(6,minmax(0,1fr)) } .cards.c5 > a { grid-column:span 2 } .cards.c5 > a:nth-child(n+4) { grid-column:span 3 }
@@ -187,6 +190,7 @@ JS = r"""
   if (window.ELabUI) window.ELabUI.init();
   if (window.ENotebookSearch) window.ENotebookSearch.init();
   if (window.ERobotUI) window.ERobotUI.init();
+  if (window.EBlocks) { window.EBlocks.attach('sim', 'lab', window.ELabUI.blockHost()); window.EBlocks.attach('rs', 'robot', window.ERobotUI.blockHost()); }
   if (window.EBuildLog) window.EBuildLog.init();
   addEventListener('beforeprint', function () { document.querySelectorAll('details.ans').forEach(function (d) { d.setAttribute('data-was', d.open ? '1' : ''); d.open = true; }); });
   addEventListener('afterprint', function () { document.querySelectorAll('details.ans').forEach(function (d) { d.open = d.getAttribute('data-was') === '1'; }); });
@@ -374,13 +378,14 @@ def sensor_pages():
 <h2>How sensors talk to an Arduino</h2><div class="tw"><table><tr><th>Output type</th><th>What it is</th><th>How an Uno reads it</th><th>Examples</th></tr>{rows}</table></div>
 {cats}
 <h2>All sensors at a glance</h2><div class="tw"><table><tr><th>Sensor</th><th>Input</th><th>Output</th><th>Example part</th></tr>{overview}</table></div>
-<h2>About the numbers</h2><p>Values are typical, and modules from different makers can differ. Always check the sheet for your exact part. Where sources disagreed, these pages say so or use a range. The code uses plain Arduino functions and has been compile-checked in this notebook's simulator engine, but hasn't been run on these real sensors.</p>
-<h3>Sensor sources</h3><ul class="tight">{"".join(f'<li><a href="{u}">{n}</a></li>' for n, u in SENSOR_SOURCES)}</ul>
+<h2>About the numbers</h2><p>Wherever a maker's data sheet could be found and read, these pages use its figures. Some low-cost modules have no maker's data sheet, so their figures come from brand documentation or community notes, and are less certain. Each sensor page says which it used. Modules from different makers can differ, so always check the sheet for your exact part. The code has been compile-checked in this notebook's simulator engine, but hasn't been run on these real sensors.</p>
+<div class="tw"><table><tr><th>Sensor</th><th>Best source available</th><th>Type</th></tr>{"".join(f'<tr><td><a href="#sensor-{x["slug"]}">{x["short"]}</a></td><td>' + (f'<a href="{x["refs"][0][1]}">{x["refs"][0][0]}</a>' if x["refs"] else "General knowledge") + f'</td><td>{x["refs"][0][2] if x["refs"] else "No specific part or source"}</td></tr>' for x in SENSORS)}</table></div>
 </section>"""
     for x in SENSORS:
         n = x["n"]
         prev_ = f'<a href="#sensor-{SENSORS[n - 2]["slug"]}">&larr; {SENSORS[n - 2]["short"]}</a>' if n > 1 else '<a href="#sensors">&larr; All sensors</a>'
         next_ = f'<a href="#sensor-{SENSORS[n]["slug"]}">{SENSORS[n]["short"]} &rarr;</a>' if n < len(SENSORS) else '<a href="#sensors">All sensors &rarr;</a>'
+        refs_txt = " &middot; ".join('<a href="%s">%s</a> (%s)' % (u, n_, "maker's data sheet" if k.startswith("Maker") else k.lower()) for n_, u, k in x["refs"]) or "general electronics knowledge, because this page covers many kinds of part. Check the sheet for yours."
         props = "".join(f'<tr><td><strong>{a}</strong></td><td class="val">{b}</td><td>{c}</td></tr>' for a, b, c in x["props"])
         ex = "".join(f"<li><b>{a}</b>{b}</li>" for a, b in x["examples"])
         code = ""
@@ -402,19 +407,10 @@ def sensor_pages():
 <h2>5. Real-life examples</h2><ul class="real">{ex}</ul>
 <div class="safe"><h3>6. Handling and safety</h3>{ul(x['safety'])}</div>
 <h3>Think Like an Engineer</h3><p>{x['think']}</p>
+<p class="src-note"><strong>Where these numbers come from:</strong> {refs_txt}</p>
 <div class="pn">{prev_}{next_}</div>
 </section>"""
     return out
-
-
-SENSOR_SOURCES = [
-    ("TI LM35 datasheet", "https://www.radiolocman.com/datasheet/pdf.html?di=59461"), ("DHT11 datasheet", "https://ece-classes.usc.edu/ee459/library/datasheets/DHT11.pdf"),
-    ("Capacitive soil moisture sensor manual", "https://shillehtek.com/blogs/shillehtek-product-manuals/capacitive-soil-moisture-sensor-v1-2-manual"), ("Rain sensor guide", "https://randomnerdtutorials.com/?p=22600"), ("0.2 mm tipping bucket gauge", "https://novalynx.com/product/260-2501m-a-2-tipping-bucket-rain-gauge-0-2-mm-tip/"),
-    ("Keyestudio MPU6050 documentation", "https://docs.keyestudio.com/projects/KS0170/en/latest/docs/KS0170.html"), ("VL53L0X tutorial", "https://thinkrobotics.com/blogs/tutorials/vl53l0x-time-of-flight-sensor-tutorial-complete-setup-and-programming-guide"), ("RCWL-0516 notes", "https://github.com/jdesbonnet/RCWL-0516"),
-    ("Radar and LIDAR for vehicles", "https://my.test3.avnet.com/apac/resources/article/understanding-the-impact-of-radar-and-lidar-on-autonomous-technologies"), ("FC-51 module reference", "https://docs.cirkitdesigner.com/component/23407e76-7369-41c1-9147-b1145305a14f/fc-51-ir-obstacle-sensor-detection-indicator-on"), ("TSOP38238 receiver", "https://components101.com/diodes/tsop38238-ir-receiver"),
-    ("OV2640 datasheet", "https://cdn.robotshop.com/media/W/Wav/RB-Wav-73/pdf/OV2640-datasheet.pdf"), ("SBM-20 tube specs", "https://mightyohm.com/blog/products/geiger-counter/sbm-20-tube-specs/"), ("MQ-2 sensor overview", "https://components101.com/sensors/mq2-gas-sensor"), ("MQ-7 datasheet", "https://sparkfun.com/datasheets/Sensors/Biometric/MQ-7.pdf"), ("MQ-3 sensor overview", "https://components101.com/sensors/mq-3-alcohol-gas-sensor"),
-    ("PH-4502C with Arduino", "https://raw.org/software/drivers/ph-4502c-ph-sensor-with-arduino/"), ("DFRobot BMP280 wiki", "https://wiki.dfrobot.com/sen0372/"), ("HX711 hardware guide", "https://docs.soldered.com/hx711/hardware/"), ("YF-S201 flow sensor", "https://components101.com/sensors/yf-s201-water-flow-measurement-sensor"), ("PulseSensor getting started", "https://www.eecs.yorku.ca/~jr/res/m/MD/PulseSensor.pdf"), ("SparkFun AD8232 hookup guide", "https://learn.sparkfun.com/tutorials/ad8232-heart-rate-monitor-hookup-guide"),
-]
 
 
 def rsim_page():
@@ -438,7 +434,7 @@ def rsim_page():
 <div class="rs-ctl" id="rs-ctl-box" hidden><label><input type="checkbox" id="rs-box"> Lift the box off the track</label></div>
 <div id="rs-msgs" aria-live="polite"></div>
 </div><div>
-<label class="code-label" for="rs-code">Arduino code</label><div class="code-box"><div id="rs-gutter" aria-hidden="true"></div><textarea id="rs-code" spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off"></textarea></div>
+<div class="code-top"><label class="code-label" for="rs-code" id="rs-codelabel">Arduino code</label><div class="code-tabs" id="rs-tabs" role="tablist" aria-label="Choose how to write the program"></div></div><div id="rs-blockmsg"></div><div class="blockbox" id="rs-blockbox" hidden></div><div class="code-box"><div id="rs-gutter" aria-hidden="true"></div><textarea id="rs-code" spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off"></textarea></div>
 <h3 style="margin-top:12px;margin-bottom:0">Serial Monitor</h3><pre id="rs-serial" aria-live="off"></pre><div id="rs-results" aria-live="polite"></div>
 </div></div>
 <h2>How close is this to a real robot?</h2>
@@ -489,7 +485,7 @@ def lab_pages():
 <div class="sim-canvas"><svg id="sim-svg" role="img" aria-label="Virtual bench with an Arduino Uno and a breadboard. The written steps below give the same layout."></svg></div>
 <div id="sim-hole"></div><div id="sim-props" hidden></div><div id="sim-controls" hidden></div><div id="sim-msgs" aria-live="polite"></div>
 </div><div>
-<label class="code-label" for="sim-code">Arduino code</label><div class="code-box"><div id="sim-gutter" aria-hidden="true"></div><textarea id="sim-code" spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off"></textarea></div>
+<div class="code-top"><label class="code-label" for="sim-code" id="sim-codelabel">Arduino code</label><div class="code-tabs" id="sim-tabs" role="tablist" aria-label="Choose how to write the program"></div></div><div id="sim-blockmsg"></div><div class="blockbox" id="sim-blockbox" hidden></div><div class="code-box"><div id="sim-gutter" aria-hidden="true"></div><textarea id="sim-code" spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off"></textarea></div>
 <h3 style="margin-top:12px;margin-bottom:0">Serial Monitor</h3><pre id="sim-serial" aria-live="off"></pre><div id="sim-results" aria-live="polite"></div>
 </div></div>
 <div id="sim-notes"></div><div class="pn" id="sim-pn"></div>
@@ -544,7 +540,7 @@ cards += [{"s": x["slug"], "g": "sensors", "t": x["short"], "d": f'Senses: {x["i
 cards += [{"s": "robots", "g": "robots", "t": a, "d": b} for a, b in ROBOT_CARDS]
 js = JS % {"topics": json.dumps([t["slug"] for t in TOPICS]), "cards": json.dumps(cards, ensure_ascii=False)}
 
-LAB_JS = "\n".join(open(f, encoding="utf-8").read() for f in ["lab_engine.js", "lab_examples.js", "lab_ui.js", "robot_engine.js", "search.js"]) + "\nwindow.ROBOT_CODE = " + json.dumps({r["n"]: {"title": r["title"], "code": r["code"]} for r in ROBOTS if r["code"]}, ensure_ascii=False).replace("</", "<\\/") + ";\nwindow.ROBOT_TITLES = " + json.dumps({r["n"]: r["title"] for r in ROBOTS}, ensure_ascii=False) + ";\n" + open("robot_ui.js", encoding="utf-8").read()
+LAB_JS = "\n".join(open(f, encoding="utf-8").read() for f in ["lab_engine.js", "lab_examples.js", "lab_ui.js", "robot_engine.js", "search.js", "blocks.js"]) + "\nwindow.ROBOT_CODE = " + json.dumps({r["n"]: {"title": r["title"], "code": r["code"]} for r in ROBOTS if r["code"]}, ensure_ascii=False).replace("</", "<\\/") + ";\nwindow.ROBOT_TITLES = " + json.dumps({r["n"]: r["title"] for r in ROBOTS}, ensure_ascii=False) + ";\n" + open("robot_ui.js", encoding="utf-8").read()
 ARROW_DEFS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="r-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--pt)"/></marker></defs></svg>'
 
 html = f"""<title>Electronics Study Notebook</title>
@@ -574,7 +570,7 @@ with open("electronics-study-notebook.html", "w", encoding="utf-8") as f:
 # The offline copy adds install support and a print button, which hosted pages can't use.
 head = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><meta name="theme-color" content="#0d6049">
-<style>html,body{margin:0}img{max-width:100%}</style></head><body>
+<style>html,body{margin:0}img{max-width:100%}</style><script>window.BLOCKLY_SRC = 'vendor/blockly.min.js';</script></head><body>
 """
 tail = """
 <button type="button" id="print-btn" style="position:fixed;right:16px;bottom:16px;z-index:5">Print this page</button>

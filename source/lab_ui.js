@@ -238,15 +238,26 @@
       this.ex = id === 'sandbox' ? null : EX[+id.slice(3) - 1] || EX[0];
       const saved = store.get('elab-' + id);
       this.c = saved ? saved.c : (this.ex ? clone(this.ex.c) : { parts: [], wires: [] });
-      this.code = saved ? saved.code : (this.ex ? this.ex.code : '// Build your own circuit, then write its code here.\nvoid setup() {\n}\n\nvoid loop() {\n}\n');
+      this.blankCode = '// Build your own circuit, then write its code here.\nvoid setup() {\n}\n\nvoid loop() {\n}\n';
+      this.code = saved ? saved.code : (this.ex ? this.ex.code : this.blankCode);
       this.undo = []; this.selected = null; this.pending = []; this.setTool('select');
       $('sim-code').value = this.code; this.gutter(); this.markLine(null);
       $('sim-serial').textContent = ''; $('sim-results').innerHTML = ''; $('restore-confirm').hidden = true;
       this.msgKey = null; this.renderNotes(); this.draw(); this.renderControls(); this.renderMsgs();
       $('sim-check').hidden = !this.ex;
+      if (window.EBlocks) window.EBlocks.onOpen('sim', id);
       this.status(this.ex ? 'Select Start Simulation to run this circuit.' : 'Add parts and wires, write your code, then select Start Simulation.');
     },
     close() { this.stop(); },
+    blockHost() {
+      const L = this;
+      return {
+        number() { return L.ex ? L.ex.n : 0; },
+        getCode() { return L.code; },
+        isEdited() { return L.code !== (L.ex ? L.ex.code : L.blankCode); },
+        setBlocksCode(code) { const was = !!L.sim; L.code = code; $('sim-code').value = code; L.gutter(); L.markLine(null); L.save(); if (was) L.stop(); },
+      };
+    },
 
     renderNotes() {
       const ex = this.ex;
@@ -325,6 +336,7 @@
     askRestore() { if (this.ex) $('restore-confirm').hidden = false; else this.restore(); },
     restore() {
       this.stop(); store.del('elab-' + this.id); $('restore-confirm').hidden = true;
+      if (window.EBlocks) window.EBlocks.reset('sim', this.id);
       this.open(this.id); this.status(this.ex ? 'Example restored to its original circuit and code.' : 'Bench cleared.');
     },
 
