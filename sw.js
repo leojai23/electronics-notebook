@@ -1,4 +1,4 @@
-const CACHE_NAME = 'electronics-notebook-944e4d383b';
+const CACHE_NAME = 'electronics-notebook-29fefa3cff';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './vendor/blockly.min.js'];
 
 self.addEventListener('install', function (event) {

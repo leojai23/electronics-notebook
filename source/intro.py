@@ -138,6 +138,14 @@ def intro_page(ul, sensor_count, robot_count, example_count):
 <li><strong>For the robot:</strong> the extra parts are listed in <a href="#robot-1">Robot Exercise 1</a>.</li></ul>
 <p><strong>Which Arduino do you have?</strong> This notebook assumes the classic <strong>Uno R3</strong>. The newer <strong>Uno R4</strong> allows only 8 mA per pin, so it needs bigger LED resistors. Each topic flags this where it matters, and the simulator can switch between the two.</p>
 
+<h3>Important notes</h3>
+<ul class="tight"><li><strong>Not yet tested on real parts.</strong> The circuits and robot exercises have been checked in the simulators, but not built on real hardware. Your guide should check every real circuit before it gets power, and you can record your results in the <a href="#buildlog">Build Log</a>.</li>
+<li><strong>The simulators are simplified.</strong> Real parts, wiring and batteries behave differently, so passing a check doesn't guarantee that a real build will work.</li>
+<li><strong>Check your exact part.</strong> Figures come from makers' data sheets where possible. Some low-cost modules have none, so each sensor page says where its numbers came from. Pin order can also vary, so check yours.</li>
+<li><strong>Blocks only go one way.</strong> Blocks can write code, but typed code can't turn back into blocks. Dragging blocks needs a mouse or touch screen, and keyboard users can use the Code tab.</li>
+<li><strong>Your work stays in this browser.</strong> Your edits, progress and Build Log aren't saved anywhere else, so clearing browser data removes them. Use <strong>Copy my results</strong> in the Build Log to keep a copy.</li>
+<li><strong>Not for real safety or health decisions.</strong> The gas, alcohol, radiation, pulse and ECG projects are for learning only. They can't replace certified alarms, approved test devices or a doctor.</li></ul>
+
 <div class="safe" style="margin-top:18px"><h3>Four safety rules for every build</h3>{ul(["<strong>Check first.</strong> Your guide looks over the wiring before power goes on.", "<strong>Unplug to change.</strong> Disconnect all power before moving any wire.", "<strong>Hot, smelly or smoking? Unplug right away.</strong> Tell your guide and let it cool.", "<strong>Low power only.</strong> Use USB and AA batteries. Never connect anything here to a wall socket."])}</div>
 <p style="margin-top:12px">You will make mistakes. Every engineer does. A burned-out LED costs very little, and it teaches you something.</p>
 <div class="pn"><a href="#home">&larr; Home</a><a href="#breadboard">Start Topic 1: Breadboard &rarr;</a></div>
