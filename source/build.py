@@ -12,9 +12,12 @@ from course import L as LESSONS
 from handbook import SESSIONS, MISTAKES, RUBRIC, ROBOT_ANSWERS, SENSOR_ANSWERS, PARTS
 from sensors import S as SENSORS, CATS as SENSOR_CATS
 from sensor_art import picture as sensor_picture, thumb as sensor_thumb
+from tools import TOOLS, tools_pages, tool_links
 
 TOPICS = TOPICS_A + TOPICS_B
 UNIT = "Unit I"
+# Rough page counts for the print menu, measured from a real PDF of each set.
+PAGES = {"unit1": 40, "unit2": 35, "sensors": 85, "coding": 25, "robots": 65, "tools": 20, "guide": 20, "all": 330}
 
 CSS = """
 /* Layout: the MBA notebook's header + sidebar + topic column, with each part photographed on a green cutting mat. */
@@ -31,6 +34,7 @@ CSS = """
   --acrylic:#cfe3e6; --acrylic-d:#8fb3b8; --bad-zone:#d9534f; --good-zone:#5cb85c; --far-zone:#5b9bd5;
   --w3-d:#2f7fa8; --w2-d:#6a3fb0; --soil:#5a3d27; --soil-d:#46301e;
   --pt-tint:#fff0cf;
+  --c-black:#17181a; --c-brown:#7a4a26; --c-red:#d23b35; --c-orange:#e67e22; --c-yellow:#f2cf2f; --c-green:#2fa04f; --c-blue:#2f6fd0; --c-violet:#8a4fc7; --c-grey:#8f979c; --c-white:#f7f7f2; --c-gold:#c9a227; --c-silver:#d5d9dc; --c-glass:#e9dcc2;
   --cap:#20335c; --cap-d:#142242; --stripe:#d9dce3; --ceramic:#c8782f; --ceramic-d:#96591f; --white:#ffffff; --mesh:#6f777c;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
@@ -39,6 +43,19 @@ CSS = """
 :root[data-theme="dark"] {
   --bg:#101613; --panel:#18211d; --text:#e4ece7; --soft:#a1b1a9; --border:#2c3a34;
   --accent:#62d0a8; --accent-soft:#1d3a30; --on-accent:#08231a; --warn:#f0b36a; --warn-soft:#33260f; --good:#62d0a8; --bad:#ff8a80; color-scheme:dark }
+:root[data-reading="day"] {
+  --bg:#f3f6f3; --panel:#ffffff; --text:#17231f; --soft:#51625b; --border:#d5dfd9;
+  --accent:#0d6049; --accent-soft:#dcebe4; --on-accent:#ffffff; --warn:#8f4a06; --warn-soft:#fbeedd; --good:#17724f; --bad:#b3261e; color-scheme:light }
+:root[data-reading="sepia"] {
+  --bg:#ece3d2; --panel:#f6efe0; --text:#3a3226; --soft:#655946; --border:#d9ccb4;
+  --accent:#0b5a44; --accent-soft:#dcdcc0; --on-accent:#fdf8ec; --warn:#7f4105; --warn-soft:#f0dcbb; --good:#14634a; --bad:#a3231b; color-scheme:light }
+:root[data-reading="dark"] {
+  --bg:#101613; --panel:#18211d; --text:#e4ece7; --soft:#a1b1a9; --border:#2c3a34;
+  --accent:#62d0a8; --accent-soft:#1d3a30; --on-accent:#08231a; --warn:#f0b36a; --warn-soft:#33260f; --good:#62d0a8; --bad:#ff8a80; color-scheme:dark }
+:root[data-reading="night"] {
+  --bg:#0f0d0b; --panel:#17140f; --text:#c9b89c; --soft:#a09279; --border:#2a251d;
+  --accent:#e0ac62; --accent-soft:#2e2414; --on-accent:#1c1204; --warn:#ef9f6b; --warn-soft:#33200f; --good:#a9c98a; --bad:#ff8a80; color-scheme:dark }
+:root[data-reading="night"] .site { background:var(--accent-soft); color:var(--text) }
 * { box-sizing:border-box }
 [hidden] { display:none !important }
 body { background:var(--bg); color:var(--text); font:16px/1.6 var(--body) }
@@ -137,7 +154,29 @@ pre.code { background:var(--panel); border:1px solid var(--border); border-radiu
 #nb-results { position:absolute; z-index:20; left:0; right:0; top:calc(100% + 4px); min-width:min(420px,calc(100vw - 32px)); max-height:70vh; overflow:auto; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px #00000040 }
 #nb-results a { display:block; padding:8px 12px; text-decoration:none; color:var(--text); border-bottom:1px solid var(--border) } #nb-results a:hover, #nb-results a.on { background:var(--accent-soft) } #nb-results b { display:block; font:700 15px var(--display) } #nb-results span { display:block; font-size:13.5px; line-height:1.35; color:var(--soft) } #nb-results .sr-g { font-size:11.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--accent) } #nb-results mark { background:var(--pt); color:#000; border-radius:2px } .sr-none { padding:12px; font-size:14.5px }
 details.fault { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:9px 13px; margin-bottom:8px; max-width:none } details.fault summary { font-weight:700; cursor:pointer } details.fault .ans-box { border:0; padding:6px 0 0; margin:0; background:transparent } details.fault code { font:13px var(--mono); background:var(--accent-soft); padding:1px 4px; border-radius:3px }
-.layout.wide ~ #print-btn { display:none }
+.reading { display:flex } .reading button { background:transparent; color:inherit; border:1px solid currentColor; border-right-width:0; border-radius:0; padding:3px 10px; min-height:30px; font:600 13px var(--body) } .reading button:first-child { border-radius:5px 0 0 5px } .reading button:last-child { border-radius:0 5px 5px 0; border-right-width:1px } .reading button:hover { background:#ffffff26 } .reading button[aria-pressed="true"] { background:var(--bg); color:var(--text) }
+:root[data-reading="night"] .reading button[aria-pressed="true"] { background:var(--accent); color:var(--on-accent) }
+.site a:focus-visible, .site button:focus-visible { outline-color:currentColor }
+.nb-fab { position:fixed; right:calc(16px + env(safe-area-inset-right)); z-index:999; width:44px; height:44px; padding:0; border-radius:50%; display:grid; place-items:center; background:var(--accent); color:var(--on-accent); border:0; cursor:pointer; box-shadow:0 2px 8px #00000047; text-decoration:none }
+.nb-fab:hover, .nb-fab:focus-visible { text-decoration:none; filter:brightness(1.12) } .nb-fab svg { width:21px; height:21px; display:block; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round }
+#nb-home-btn { bottom:calc(16px + env(safe-area-inset-bottom)) } #nb-print-btn { bottom:calc(68px + env(safe-area-inset-bottom)) } #nb-search-btn { bottom:calc(120px + env(safe-area-inset-bottom)) }
+.nb-fab::after { content:attr(data-tip); position:absolute; right:calc(100% + 9px); top:50%; transform:translateY(-50%); background:var(--text); color:var(--bg); font:600 12.5px/1 var(--body); padding:7px 10px; border-radius:6px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .12s ease }
+.nb-fab:hover::after, .nb-fab:focus-visible::after { opacity:1 } @media (hover:none) { .nb-fab::after { display:none } }
+#nb-print-menu { position:fixed; right:calc(70px + env(safe-area-inset-right)); bottom:calc(16px + env(safe-area-inset-bottom)); z-index:1001; display:none; width:min(300px,calc(100vw - 86px)); background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:10px; box-shadow:0 8px 28px #00000059; overflow:hidden }
+#nb-print-menu.open { display:block } #nb-print-menu button, #nb-print-menu a { display:block; width:100%; text-align:left; border:0; border-radius:0; background:transparent; color:var(--text); font:400 14.5px/1.3 var(--body); padding:10px 14px; border-top:1px solid var(--border); text-decoration:none; overflow-wrap:anywhere }
+#nb-print-menu button:hover, #nb-print-menu button:focus, #nb-print-menu a:hover, #nb-print-menu a:focus { background:var(--accent-soft); outline:0 } #nb-print-menu b { display:block } #nb-print-menu small { display:block; font-size:12.5px; color:var(--soft); margin-top:2px } #nb-print-menu .hd { padding:8px 14px; font:700 11.5px var(--body); letter-spacing:.06em; text-transform:uppercase; color:var(--soft) } .pm-note { padding:0 14px 10px; font-size:14px; line-height:1.35 }
+#nb-scrim { position:fixed; inset:0; z-index:1000; background:#00000073 }
+.search.float { position:fixed; z-index:1001; top:9vh; left:50%; transform:translateX(-50%); width:min(560px,calc(100vw - 32px)); max-width:none; flex:none } .search.float #nb-search { font-size:17px; padding:11px 14px; border:1px solid var(--border); box-shadow:0 8px 28px #00000059 } .search.float #nb-results { min-width:0; max-height:66vh }
+.print-copy, .print-only { display:none }
+.tool-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; align-items:start; margin:14px 0 } .tool-grid > * { min-width:0 }
+.tool-form { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:12px 14px } .tf { margin-bottom:12px } .tf:last-child { margin-bottom:0 } .tf label { display:block; font-weight:700; font-size:14.5px } .tf-in { display:flex; gap:6px; align-items:center; margin-top:4px; font-weight:400 } .tf-in input { flex:1 1 auto; min-width:0; width:100%; font:16px var(--body); padding:7px 9px; background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:6px } .tf-in select { flex:0 0 auto; max-width:100% } .tf-in select:only-child { flex:1 1 auto; min-width:0; width:100% } .tf-u { font-size:14.5px; color:var(--soft); min-width:24px } .tf input[type=range] { display:block; width:100%; margin-top:7px; accent-color:var(--accent) } .tf-hint { display:block; font-size:13.5px; color:var(--soft); margin:4px 0 0; font-weight:400; min-height:0 } .tf-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px } .tf-row .tf { margin:0 }
+.tool-big { background:var(--accent-soft); border-radius:8px; padding:12px 16px } .tool-big span { display:block; font-size:14px; color:var(--soft) } .tool-big b { display:block; font:700 clamp(26px,5vw,34px)/1.15 var(--display); color:var(--accent); overflow-wrap:anywhere }
+.tool-art { display:block; width:100%; height:auto; margin:12px 0 4px; font-family:var(--body) } table.tool-rows { margin-top:8px } .tool-rows th { background:transparent; font-weight:400; color:var(--soft); width:54% } .tool-rows td { font-weight:700; overflow-wrap:anywhere }
+.bands { display:grid; grid-template-columns:repeat(var(--n,4),minmax(0,1fr)); gap:6px; margin-top:10px } fieldset.band { border:0; padding:0; margin:0; min-width:0 } fieldset.band legend { font:700 12.5px var(--body); padding:0 0 4px; overflow-wrap:anywhere }
+.chip { display:flex; gap:5px; align-items:center; padding:3px; border-radius:5px; cursor:pointer; font-size:12.5px; line-height:1.1; border:2px solid transparent; min-width:0 } .chip input { position:absolute; opacity:0; width:1px; height:1px } .chip i { flex:0 0 15px; height:22px; border-radius:3px; border:1px solid var(--soft) } .chip span { min-width:0; overflow-wrap:anywhere } .chip small { display:block; font-size:11.5px; color:var(--soft) } .chip:hover { background:var(--accent-soft) } .chip:has(input:checked) { border-color:var(--accent); background:var(--accent-soft); font-weight:700 } .chip:has(input:focus-visible) { outline:3px solid var(--accent); outline-offset:1px }
+i.sw { display:inline-block; width:14px; height:14px; border-radius:3px; border:1px solid var(--soft); vertical-align:-2px; margin-right:4px } .tool-link { margin-top:10px }
+@media (max-width:780px) { .tool-grid { grid-template-columns:minmax(0,1fr) } }
+@media (max-width:560px) { .reading { flex:1 1 100%; order:5 } .reading button { flex:1; padding:3px 4px } }
 .code-top { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px } .code-top .code-label { margin:0 } .code-tabs { display:flex; gap:4px } .code-tabs button { padding:4px 12px; font-size:14px }
 .blockbox { height:460px; border:1px solid var(--border); border-radius:6px; overflow:hidden; margin-bottom:8px } .code-box.short { height:210px } .sim-grid.blocks-on { grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) } .src-note { font-size:13.5px; color:var(--soft); margin-top:14px; max-width:none }
 @media (max-width:1040px) { .sim-grid.blocks-on { grid-template-columns:minmax(0,1fr) } }
@@ -154,8 +193,10 @@ details.fault { background:var(--panel); border:1px solid var(--border); border-
 @media (max-width:780px) { .io-flow { grid-template-columns:repeat(2,minmax(0,1fr)) } .cards.c4, .cards.c3 { grid-template-columns:repeat(2,minmax(0,1fr)) } .cards.c5 { grid-template-columns:repeat(2,minmax(0,1fr)) } .cards.c5 > a, .cards.c5 > a:nth-child(n+4) { grid-column:span 1 } .cards.c5 > a:last-child, .cards.c3 > a:last-child { grid-column:span 2 } }
 @media (max-width:460px) { .real { grid-template-columns:minmax(0,1fr) } }
 @media print {
-  :root:root:root { --bg:#fff; --panel:#fff; --text:#000; --soft:#333; --border:#999; --accent:#0d6049; --accent-soft:#e7f0ec; --warn:#7a3f05; --warn-soft:#f7efe3; color-scheme:light }
-  .site, .side, footer, .pn, .toolbar, .links, button, #sim-status, #print-btn { display:none !important }
+  :root:root:root { --bg:#fff; --panel:#fff; --text:#000; --soft:#333; --border:#999; --accent:#0d6049; --accent-soft:#e7f0ec; --on-accent:#fff; --warn:#7a3f05; --warn-soft:#f7efe3; --good:#17724f; --bad:#b3261e; color-scheme:light }
+  .site, .side, footer, .pn, .toolbar, .links, button, #sim-status, .nb-fab, #nb-print-menu, #nb-scrim, .tool-link, .code-tabs, .blockbox, #sim-hole, #sim-props, #sim-controls, #sim-msgs, #sim-gutter, #rs-gutter, #sim-serial, #sim-serial-h, .run-row, .run-label, .run-out, .task-res, .fc, .fc-row, #fc-pos, input[type=range], details.ans summary { display:none !important }
+  .ans-box::before { content:'Answer: '; font-weight:700 }
+  #page-sim a[href="#lab"] { display:none } .code-top { break-after:avoid } .print-copy, .runner { break-inside:avoid } @page { margin:14mm } .print-break { break-before:page } .print-copy, .print-only { display:block } main textarea { display:none !important } .code-box { display:block; height:auto; border:0; overflow:visible; background:transparent } .sim-grid, .sim-grid.blocks-on { display:block } #sim-svg { min-width:0 } .sim-canvas { overflow:visible } .tool-grid { grid-template-columns:minmax(0,1fr) minmax(0,1fr) } .tf-in input { border:1px solid #999 } .ans-box { border-left:3px solid #999; border-radius:0; border-top:0; border-right:0; border-bottom:0 } .cards, .cards.c4, .cards.c3, .cards.c5 { grid-template-columns:repeat(3,minmax(0,1fr)) } .cards.c5 > a, .cards.c5 > a:nth-child(n+4) { grid-column:auto } .tc { break-inside:avoid }
   body { background:#fff; font-size:11pt } .layout, .layout.wide { display:block; max-width:none; padding:0 }
   * { -webkit-print-color-adjust:exact; print-color-adjust:exact }
   figure, table, pre, .exam, .safe, .q-card, .real li { break-inside:avoid } h2, h3 { break-after:avoid }
@@ -186,7 +227,7 @@ JS = r"""
     if (window.ERobotUI) { if (!isRobot) window.ERobotUI.close(); }
     pages.forEach(function (p) { p.hidden = p !== page; });
     if (window.ECourse) window.ECourse.stopAll();
-    var navId = isSim ? 'lab' : (isRobot || /^robot-/.test(id)) ? 'robots' : /^code-/.test(id) ? 'coding' : /^guide/.test(id) ? 'guide' : id === 'notes-unit2' ? 'unit2' : /^sensor-/.test(id) ? 'sensors' : /^quiz/.test(id) ? 'quiz' : id;
+    var navId = isSim ? 'lab' : (isRobot || /^robot-/.test(id)) ? 'robots' : /^tool-/.test(id) ? 'tools' : /^code-/.test(id) ? 'coding' : /^guide/.test(id) ? 'guide' : id === 'notes-unit2' ? 'unit2' : /^sensor-/.test(id) ? 'sensors' : /^quiz/.test(id) ? 'quiz' : id;
     links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + navId); });
     crumb.textContent = id === 'home' ? 'Overview' : (page.getAttribute('data-name') || '');
     if (TOPIC.indexOf(id) > -1) { read[id] = 1; try { localStorage.setItem(KEY, JSON.stringify(read)); } catch (e) {} }
@@ -202,8 +243,9 @@ JS = r"""
   if (window.EBuildLog) window.EBuildLog.init();
   if (window.ECourse) window.ECourse.init();
   if (window.EParts) window.EParts.init();
-  addEventListener('beforeprint', function () { document.querySelectorAll('details.ans').forEach(function (d) { d.setAttribute('data-was', d.open ? '1' : ''); d.open = true; }); });
-  addEventListener('afterprint', function () { document.querySelectorAll('details.ans').forEach(function (d) { d.open = d.getAttribute('data-was') === '1'; }); });
+  if (window.ETools) window.ETools.init();
+  window.NB_CARDS = CARDS;
+  if (window.EReading) window.EReading.init();
   addEventListener('hashchange', route);
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-copy]'); if (!b) return;
@@ -288,7 +330,7 @@ def topic_page(i, t):
 <h2>2. Detailed Notes</h2>
 <h3>2.1 Name and look</h3><p>{t['look']}</p>
 <h3>2.2 Purpose</h3><p>{t['purpose']}</p>
-<h3>2.3 Key properties</h3><div class="tw"><table><tr><th>Property</th><th>Unit or value</th><th>What it means</th></tr>{rows}</table></div>
+<h3>2.3 Key properties</h3><div class="tw"><table><tr><th>Property</th><th>Unit or value</th><th>What it means</th></tr>{rows}</table></div>{tool_links(t['slug'])}
 <h3>2.4 Example everyday usage</h3><p>{t['everyday']}</p>
 <h3>2.5 Sample robotics application</h3><p>{t['robot']}</p>
 <div class="safe"><h3>2.6 Handling and safety</h3>{ul(t['safety'])}</div>
@@ -307,12 +349,12 @@ def home():
     src = "".join(f'<li><a href="{u}">{n}</a></li>' for n, u in SOURCES)
     return f"""
 <section id="page-home" data-page data-name="Unit I overview">
-<h1>Electronics Study Notebook</h1><p class="sub">17 topics, 22 sensors, 12 coding lessons, 28 simulated examples and 25 robot exercises</p>
+<h1>Electronics Study Notebook</h1><p class="sub">17 topics, 22 sensors, 12 coding lessons, 28 simulated examples, 25 robot exercises and {len(TOOLS)} live tools</p>
 <p>Learn how electronics works, then use it to build a robot. This notebook is written for a young beginner working with an adult guide, and it starts from zero.</p>
 <div class="links"><a href="#intro">New here? Read the Introduction first</a></div>
 <h2>Unit I: essential parts</h2><div class="cards">{cards}</div>
 <h2>Unit II: more core parts</h2><div class="cards c4">{"".join(f'<a class="tc" href="#{t["slug"]}">{thumb(t["slug"])}<div><b>{t["short"]}</b><span>{t["blurb"]}</span></div></a>' for t in UNIT2)}</div>
-<h2>Learn and build</h2><div class="links"><a href="#coding">Coding Course: 12 lessons</a><a href="#lab">Practical Lab: 28 examples with a simulator</a><a href="#robots">Robot Exercises: 25 builds</a><a href="#sensors">Sensors: 22 explained</a><a href="#buildlog">Build Log</a><a href="#faults">Fix It Guide</a></div>
+<h2>Learn and build</h2><div class="links"><a href="#coding">Coding Course: 12 lessons</a><a href="#lab">Practical Lab: 28 examples with a simulator</a><a href="#robots">Robot Exercises: 25 builds</a><a href="#sensors">Sensors: 22 explained</a><a href="#tools">Live Tools: {len(TOOLS)} calculators</a><a href="#buildlog">Build Log</a><a href="#faults">Fix It Guide</a></div>
 <h2>For the adult guide</h2><div class="links"><a href="#guide">Guide's Handbook</a><a href="#guide-answers">Answer Keys</a><a href="#parts">Shopping List</a></div>
 <h2>Study tools</h2><div class="links"><a href="#flashcards">Flashcards</a><a href="#assignments">Assignments</a><a href="#quiz">Quiz</a><a href="#notes">Notes</a><a href="#case-study">Case Study</a></div>
 <h2>Before you start</h2>
@@ -327,7 +369,7 @@ def flash():
 <section id="page-flashcards" data-page data-name="Flashcards" hidden>
 <h1>Flashcards</h1><p class="sub">Choose a deck: Unit I topics, sensors or robot terms</p>
 <div class="fc-row"><label for="deck">Deck</label><select id="deck"><option value="g:topics">Unit I: all topics</option>{opts}<option value="g:topics2">Unit II: all topics</option>{"".join(f'<option value="{t["slug"]}">{t["short"]}</option>' for t in UNIT2)}<option value="g:sensors">All 22 sensors</option><option value="g:robots">Robot terms</option><option value="all">Everything</option></select></div>
-<button class="fc" id="fc" type="button"></button>
+<button class="fc" id="fc" type="button"></button><div class="print-only" id="fc-print"></div>
 <div class="fc-row"><button class="alt" id="fc-prev" type="button">Previous</button><button id="fc-next" type="button">Next</button><button class="alt" id="fc-shuffle" type="button">Shuffle</button><span class="marks" id="fc-pos"></span></div>
 </section>"""
 
@@ -490,7 +532,7 @@ def unit2_topic(i, t):
 <figure><div class="fig-scroll">{figure(t['slug'])}</div><figcaption>Figure U{i + 1}. {t['title']}. Illustration, not to scale.</figcaption></figure>
 <h2>2. Detailed Notes</h2>
 <h3>2.1 Name and look</h3><p>{t['look']}</p><h3>2.2 Purpose</h3><p>{t['purpose']}</p>
-<h3>2.3 Key properties</h3><div class="tw"><table><tr><th>Property</th><th>Unit or value</th><th>What it means</th></tr>{rows}</table></div>
+<h3>2.3 Key properties</h3><div class="tw"><table><tr><th>Property</th><th>Unit or value</th><th>What it means</th></tr>{rows}</table></div>{tool_links(t['slug'])}
 <h3>2.4 Example everyday usage</h3><p>{t['everyday']}</p><h3>2.5 Sample robotics application</h3><p>{t['robot']}</p>
 <div class="safe"><h3>2.6 Handling and safety</h3>{ul(t['safety'])}</div>
 <h2>3. Key Terms</h2><dl class="terms">{terms}</dl>
@@ -620,7 +662,7 @@ def lab_pages():
 <div id="sim-hole"></div><div id="sim-props" hidden></div><div id="sim-controls" hidden></div><div id="sim-msgs" aria-live="polite"></div>
 </div><div>
 <div class="code-top"><label class="code-label" for="sim-code" id="sim-codelabel">Arduino code</label><div class="code-tabs" id="sim-tabs" role="tablist" aria-label="Choose how to write the program"></div></div><div id="sim-blockmsg"></div><div class="blockbox" id="sim-blockbox" hidden></div><div class="code-box"><div id="sim-gutter" aria-hidden="true"></div><textarea id="sim-code" spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off"></textarea></div>
-<h3 style="margin-top:12px;margin-bottom:0">Serial Monitor</h3><pre id="sim-serial" aria-live="off"></pre><div id="sim-results" aria-live="polite"></div>
+<h3 id="sim-serial-h" style="margin-top:12px;margin-bottom:0">Serial Monitor</h3><pre id="sim-serial" aria-live="off"></pre><div id="sim-results" aria-live="polite"></div>
 </div></div>
 <div id="sim-notes"></div><div class="pn" id="sim-pn"></div>
 </section>"""
@@ -677,15 +719,45 @@ cards += [{"s": "robots", "g": "robots", "t": a, "d": b} for a, b in ROBOT_CARDS
 cards += [{"s": t["slug"], "g": "topics2", "t": a, "d": b} for t in UNIT2 for a, b in t["terms"]]
 js = JS % {"topics": json.dumps([t["slug"] for t in TOPICS + UNIT2]), "cards": json.dumps(cards, ensure_ascii=False)}
 
-LAB_JS = "\n".join(open(f, encoding="utf-8").read() for f in ["lab_engine.js", "lab_examples.js", "lab_ui.js", "robot_engine.js", "search.js", "blocks.js", "course.js"]) + "\nwindow.COURSE_TASKS = " + json.dumps(COURSE_TASKS, ensure_ascii=False) + ";\nwindow.ROBOT_CODE = " + json.dumps({r["n"]: {"title": r["title"], "code": r["code"]} for r in ROBOTS if r["code"]}, ensure_ascii=False).replace("</", "<\\/") + ";\nwindow.ROBOT_TITLES = " + json.dumps({r["n"]: r["title"] for r in ROBOTS}, ensure_ascii=False) + ";\n" + open("robot_ui.js", encoding="utf-8").read()
+def _set(name, desc, pages, approx):
+    return {"name": name, "desc": desc, "pages": pages, "approx": approx}
+
+
+_u1 = [t["slug"] for t in TOPICS] + ["notes"]
+_u2 = ["unit2"] + [t["slug"] for t in UNIT2] + ["notes-unit2"]
+_sn = ["sensors"] + [f"sensor-{x['slug']}" for x in SENSORS]
+_cd = ["coding"] + [f"code-{n}" for n in range(1, len(LESSONS) + 1)]
+_rb = ["robots"] + [f"robot-{r['n']}" for r in ROBOTS]
+_tl = ["tools"] + [f"tool-{t['slug']}" for t in TOOLS]
+_gd = ["guide", "guide-answers", "parts"]
+_all = ["home", "intro"] + _u1 + _u2 + _sn + _cd + ["lab"] + _rb + _tl + ["faults", "assignments", "quiz", "quiz-unit2", "quiz-sensors", "quiz-robots", "case-study"] + _gd
+PRINT_SETS = {
+    "unit1": _set("All of Unit I", "Every topic and the notes", _u1, PAGES["unit1"]),
+    "unit2": _set("All of Unit II", "Every topic and the notes", _u2, PAGES["unit2"]),
+    "sensors": _set("All sensors", "All 22 sensor pages", _sn, PAGES["sensors"]),
+    "coding": _set("The whole Coding Course", "All 12 lessons", _cd, PAGES["coding"]),
+    "robots": _set("All robot exercises", "All 25 builds", _rb, PAGES["robots"]),
+    "tools": _set("All Live Tools", f"All {len(TOOLS)} tools", _tl, PAGES["tools"]),
+    "guide": _set("The Guide's Handbook", "With answer keys and shopping list", _gd, PAGES["guide"]),
+    "all": _set("The whole notebook", "Everything except the simulators", _all, PAGES["all"]),
+}
+FABS = (
+    '<button type="button" class="nb-fab" id="nb-search-btn" data-tip="Search" aria-label="Search the notebook"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg></button>'
+    '<button type="button" class="nb-fab" id="nb-print-btn" data-tip="Print" aria-label="Print" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5M7 17H4v-7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7h-3"/><path d="M7 14h10v7H7z"/></svg></button>'
+    '<a class="nb-fab" id="nb-home-btn" href="#home" data-tip="Home" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M6 9.5V21h12V9.5"/></svg></a>'
+    '<div id="nb-print-menu" role="menu" aria-label="Print"></div><div id="nb-scrim" hidden></div>'
+)
+
+LAB_JS = "\n".join(open(f, encoding="utf-8").read() for f in ["lab_engine.js", "lab_examples.js", "lab_ui.js", "robot_engine.js", "search.js", "blocks.js", "course.js", "tools.js", "reading.js"]) + "\nwindow.PRINT_SETS = " + json.dumps(PRINT_SETS, ensure_ascii=False) + ";\nwindow.NB_PUBLIC = 'https://leojai23.github.io/electronics-notebook/';\nwindow.COURSE_TASKS = " + json.dumps(COURSE_TASKS, ensure_ascii=False) + ";\nwindow.ROBOT_CODE = " + json.dumps({r["n"]: {"title": r["title"], "code": r["code"]} for r in ROBOTS if r["code"]}, ensure_ascii=False).replace("</", "<\\/") + ";\nwindow.ROBOT_TITLES = " + json.dumps({r["n"]: r["title"] for r in ROBOTS}, ensure_ascii=False) + ";\n" + open("robot_ui.js", encoding="utf-8").read()
 ARROW_DEFS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><marker id="r-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--pt)"/></marker></defs></svg>'
 
 html = f"""<title>Electronics Study Notebook</title>
+<script>try{{var _r=localStorage.getItem('elec-reading');if(_r)document.documentElement.setAttribute('data-reading',_r);}}catch(e){{}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>{CSS}</style>
 {DEFS}{ARROW_DEFS}
-<header class="site"><div class="site-in"><a class="brand" href="#home">Electronics Study Notebook</a><div class="search" role="search"><input type="search" id="nb-search" placeholder="Search (press /)" aria-label="Search the notebook" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="nb-results"><div id="nb-results" role="listbox" hidden></div></div><span class="crumbs"><a href="#home">Home</a> / <span id="crumb">Overview</span></span></div></header>
+<header class="site"><div class="site-in"><a class="brand" href="#home">Electronics Study Notebook</a><div class="search" role="search"><input type="search" id="nb-search" placeholder="Search (press /)" aria-label="Search the notebook" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="nb-results"><div id="nb-results" role="listbox" hidden></div></div><span class="crumbs"><a href="#home">Home</a> / <span id="crumb">Overview</span></span><div class="reading" role="group" aria-label="Reading mode"><button type="button" data-set-reading="day">Day</button><button type="button" data-set-reading="sepia">Sepia</button><button type="button" data-set-reading="dark">Dark</button><button type="button" data-set-reading="night">Night</button></div></div></header>
 <div class="layout" id="layout">
 <details class="side" id="side"><summary>Contents</summary>
 <ul style="margin-top:8px"><li><a href="#home">Home</a></li><li><a href="#intro">Introduction</a></li></ul>
@@ -693,29 +765,28 @@ html = f"""<title>Electronics Study Notebook</title>
 <h3>Unit II: more core parts</h3><ul><li><a href="#unit2">Unit II overview</a></li></ul><ol>{side_u2}</ol>
 <h3>Sensors</h3><ul><li><a href="#sensors">All 22 sensors</a></li></ul>
 <h3>Learn to code</h3><ul><li><a href="#coding">Coding Course</a></li></ul>
-<h3>Build things</h3><ul><li><a href="#lab">Practical Lab</a></li><li><a href="#robots">Robot Exercises</a></li><li><a href="#buildlog">Build Log</a></li></ul>
+<h3>Build things</h3><ul><li><a href="#lab">Practical Lab</a></li><li><a href="#robots">Robot Exercises</a></li><li><a href="#tools">Live Tools</a></li><li><a href="#buildlog">Build Log</a></li></ul>
 <h3>Study tools</h3><ul><li><a href="#faults">Fix It Guide</a></li>{side_more}</ul>
 <h3>For the guide</h3><ul><li><a href="#guide">Guide's Handbook</a></li><li><a href="#parts">Shopping List</a></li></ul>
 <div class="prog"><span id="prog-n"></span><div class="bar"><i id="prog-bar"></i></div></div>
 </details>
-<main>{home()}{"".join(topic_page(i, t) for i, t in enumerate(TOPICS))}{intro_page(ul, len(SENSORS), len(ROBOTS), 28)}{unit2_pages()}{COURSE_HTML}{guide_pages()}{parts_page()}{sensor_pages()}{lab_pages()}{robot_pages()}{rsim_page()}{buildlog_page()}{faults_page(ul)}{flash()}{assignments()}{quiz()}{notes()}{case()}</main>
+<main>{home()}{"".join(topic_page(i, t) for i, t in enumerate(TOPICS))}{intro_page(ul, len(SENSORS), len(ROBOTS), 28)}{unit2_pages()}{COURSE_HTML}{guide_pages()}{parts_page()}{sensor_pages()}{lab_pages()}{robot_pages()}{rsim_page()}{tools_pages(thumb, ans, ul)}{buildlog_page()}{faults_page(ul)}{flash()}{assignments()}{quiz()}{notes()}{case()}</main>
 </div>
 <footer>Electronics Study Notebook</footer>
+{FABS}
 <script>{LAB_JS}</script>
 <script>{js}</script>
 """
 with open("electronics-study-notebook.html", "w", encoding="utf-8") as f:
     f.write(html)
 
-# The offline copy adds install support and a print button, which hosted pages can't use.
+# The offline copy adds install support and printing, which hosted pages can't use.
 head = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml"><meta name="theme-color" content="#0d6049">
-<style>html,body{margin:0}img{max-width:100%}</style><script>window.BLOCKLY_SRC = 'vendor/blockly.min.js';</script></head><body>
+<style>html,body{margin:0}img{max-width:100%}</style><script>window.BLOCKLY_SRC = 'vendor/blockly.min.js'; window.NB_CAN_PRINT = true;</script></head><body>
 """
 tail = """
-<button type="button" id="print-btn" style="position:fixed;right:16px;bottom:16px;z-index:5">Print this page</button>
-<script>if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) navigator.serviceWorker.register('sw.js');
-document.getElementById('print-btn').addEventListener('click', function () { window.print(); });</script>
+<script>if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) navigator.serviceWorker.register('sw.js');</script>
 </body></html>
 """
 with open("offline.html", "w", encoding="utf-8") as f:

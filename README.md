@@ -5,7 +5,9 @@ A self-contained study notebook on electronics, sensors and robotics, written fo
 ## Using it
 
 - **Offline:** open `index.html` in a browser. Everything works without installing anything. With no internet, the page uses fallback fonts.
-- **Printing:** use the **Print this page** button. Practice-question answers print expanded.
+- **Printing:** use the round print button. It offers this page, the whole section or the whole notebook, with rough page counts. Answers print expanded. The Claude-hosted copy can't print, so its button links to the public copy.
+- **Reading modes:** Day, Sepia, Dark and Night are in the header. The choice is saved in that browser.
+- **Search:** press `/` or the round search button from anywhere.
 - **Installing as an app:** this needs the folder to be served over `https` or `localhost`, for example with `python -m http.server` from this folder. Then choose Install in the browser.
 - **Saved work:** Lab edits, the Build Log and reading progress stay in that one browser. Use **Copy my results** in the Build Log to keep a copy.
 
@@ -41,6 +43,8 @@ git push
 | `robot_engine.js`, `robot_ui.js` | The robot simulator, its checks and the Build Log |
 | `extras.py` | The sensor and robot quizzes, robot flashcards and the Fix It Guide |
 | `search.js` | Notebook search |
+| `reading.js` | Reading modes, the round buttons and the print menu |
+| `tools.py`, `tools.js` | The 14 Live Tools: page text, and the sums and screens |
 | `blocks.js` | Block coding and the ready-made block programs |
 | `unit2.py` | Unit II topics, drawings and quiz |
 | `course.py`, `course.js` | The Arduino coding course and its runner |
@@ -54,6 +58,7 @@ From `source/`, with Node installed:
 
 ```
 node test_lab.js
+node test_tools.js
 python dump_robots.py && node test_robots.js && node test_robot_sim.js
 python test_sensors.py && node test_sensors.js
 ```

@@ -22,6 +22,9 @@
 
   function group(hash) {
     if (/^ex-/.test(hash)) return 'Practical Lab';
+    if (/^tool/.test(hash)) return 'Live Tool';
+    if (/^code-|^coding$/.test(hash)) return 'Coding Course';
+    if (/^guide|^parts$/.test(hash)) return "Guide's Handbook";
     if (/^robot-/.test(hash)) return 'Robot Exercise';
     if (/^sensor-/.test(hash)) return 'Sensor';
     if (/^quiz/.test(hash)) return 'Quiz';
@@ -70,6 +73,13 @@
   }
 
   function close() { const r = $('nb-results'); r.hidden = true; r.innerHTML = ''; $('nb-search').setAttribute('aria-expanded', 'false'); active = -1; }
+  function unfloat() { $('nb-search').closest('.search').classList.remove('float'); $('nb-scrim').hidden = true; }
+  function closeAll() { close(); unfloat(); }
+  function open() {
+    $('nb-search').closest('.search').classList.add('float'); $('nb-scrim').hidden = false;
+    $('nb-search').focus({ preventScroll: true });
+    if ($('nb-search').value.trim()) show();
+  }
 
   function show() {
     const q = $('nb-search').value.trim(), r = $('nb-results');
@@ -103,15 +113,16 @@
           e.preventDefault();
           const links = box.querySelectorAll('a'), go = links[active >= 0 ? active : 0];
           if (go) go.click();
-        } else if (e.key === 'Escape') { close(); input.blur(); }
+        } else if (e.key === 'Escape') { closeAll(); input.blur(); }
       });
-      box.addEventListener('click', e => { if (e.target.closest('a')) { input.value = ''; close(); } });
-      document.addEventListener('click', e => { if (!e.target.closest('.search')) close(); });
-      addEventListener('hashchange', close);
+      box.addEventListener('click', e => { if (e.target.closest('a')) { input.value = ''; closeAll(); } });
+      document.addEventListener('click', e => { if (!e.target.closest('.search')) closeAll(); });
+      addEventListener('hashchange', closeAll);
       addEventListener('keydown', e => {
-        if (e.key === '/' && !e.target.matches('input,textarea,select') && !e.ctrlKey && !e.metaKey) { e.preventDefault(); input.focus(); }
+        if (e.key === '/' && !e.target.matches('input,textarea,select') && !e.ctrlKey && !e.metaKey) { e.preventDefault(); open(); }
       });
     },
+    open,
     find(q) { if (!index) build(); return find(q).map(h => h.x.hash); },
   };
 })();

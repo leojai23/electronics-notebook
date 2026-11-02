@@ -268,6 +268,7 @@ void drive(int left, int right) {
 
   // ---------- one panel per simulator ----------
   const hosts = {};
+  addEventListener('nb-reading', () => { Object.keys(hosts).forEach(p => { if (hosts[p].ws) hosts[p].ws.setTheme(theme()); }); });
   function attach(p, kind, host) {
     const h = hosts[p] = { p, kind, host, mode: 'code', ws: null, id: null, quiet: false };
     const tabs = $(p + '-tabs');

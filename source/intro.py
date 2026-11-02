@@ -78,6 +78,7 @@ def intro_page(ul, sensor_count, robot_count, example_count):
         ("17 Topics in 2 units", "#breadboard", "One core part per page, with an image, key terms, practice questions and Bloom's levels.", "Learning what each part does"),
         ("Coding Course", "#coding", "12 short lessons, with code to run and tasks that check themselves.", "Learning to write code"),
         ("Practical Lab", "#lab", f"{example_count} examples on a virtual bench. You can rewire them, edit the code and run a check.", "Trying ideas safely, with no parts"),
+        ("Live Tools", "#tools", "14 calculators that update as you type, such as resistor colours, LED resistors and Ohm's Law.", "Working out values while you build"),
         ("Sensors", "#sensors", f"{sensor_count} sensors, each with properties, inputs and outputs, a circuit and real-life uses.", "Choosing the right sensor"),
         ("Robot Simulator", "#rsim-6", "Run the robot exercises' code on a virtual robot before you build it.", "Testing robot code safely"),
         ("Robot Exercises", "#robots", f"{robot_count} builds with numbered steps and images, from an empty chassis to a final mission.", "Building a real robot"),
